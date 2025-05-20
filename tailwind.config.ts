@@ -53,10 +53,11 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        rose: {
-          500: "#e11d48",
-          600: "#be123c",
-        },
+        // Custom color palette
+        "custom-pink": "#FFC5C5",
+        "custom-cream": "#FFEBD8",
+        "custom-green": "#C7DCA7",
+        "custom-teal": "#89B9AD",
         zinc: {
           800: "#27272a",
           900: "#18181b",
@@ -69,7 +70,7 @@ const config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-montserrat)"],
+        sans: ["var(--font-manrope)"],
       },
       keyframes: {
         "accordion-down": {

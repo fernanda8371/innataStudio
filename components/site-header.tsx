@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, X, User } from "lucide-react"
+import { Menu, X, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const mainNav = [
@@ -21,66 +21,61 @@ export function SiteHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-black/90 backdrop-blur-sm border-b border-zinc-800">
-      <div className="container flex h-20 items-center justify-between">
+    <header className="absolute top-0 z-50 w-full">
+      <div className="container flex h-24 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="font-extrabold text-2xl tracking-tight">
-            CYCLE<span className="text-blue-500">STUDIO</span>
+            INNATA <span className="text-custom-teal">STUDIO</span>
           </Link>
+        </div>
 
+        <div className="flex items-center gap-4">
           <nav className="hidden md:flex gap-6">
             {mainNav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-blue-500",
-                  pathname === item.href ? "text-blue-500" : "text-zinc-200",
+                  "text-sm font-medium transition-colors hover:text-custom-teal",
+                  pathname === item.href ? "text-custom-teal" : "text-zinc-800",
                 )}
               >
-                {item.title.toUpperCase()}
+                {item.title}
               </Link>
             ))}
           </nav>
-        </div>
 
-        <div className="flex items-center gap-4">
-          <Button asChild variant="ghost" size="icon" className="text-white hover:text-blue-500 hover:bg-transparent">
-            <Link href="/perfil">
-              <User className="h-5 w-5" />
-              <span className="sr-only">Perfil</span>
+          <Button asChild className="hidden md:flex bg-zinc-900 hover:bg-zinc-800 text-white rounded-full">
+            <Link href="/reservar" className="flex items-center gap-1">
+              Membership <ChevronRight className="h-4 w-4" />
             </Link>
-          </Button>
-
-          <Button asChild className="hidden md:flex bg-blue-500 hover:bg-blue-600">
-            <Link href="/reservar">RESERVAR AHORA</Link>
           </Button>
 
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden text-white">
+              <Button variant="ghost" size="icon" className="text-zinc-800">
                 {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-black text-white border-zinc-800 pt-10">
+            <SheetContent side="right" className="bg-custom-cream text-zinc-800 pt-10">
               <nav className="flex flex-col gap-6">
                 {mainNav.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "text-lg font-medium transition-colors hover:text-blue-500",
-                      pathname === item.href ? "text-blue-500" : "text-zinc-200",
+                      "text-lg font-medium transition-colors hover:text-custom-teal",
+                      pathname === item.href ? "text-custom-teal" : "text-zinc-800",
                     )}
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    {item.title.toUpperCase()}
+                    {item.title}
                   </Link>
                 ))}
-                <Button asChild className="mt-4 bg-blue-500 hover:bg-blue-600">
+                <Button asChild className="mt-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-full">
                   <Link href="/reservar" onClick={() => setIsMenuOpen(false)}>
-                    RESERVAR AHORA
+                    Membership
                   </Link>
                 </Button>
               </nav>
