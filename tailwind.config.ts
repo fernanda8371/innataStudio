@@ -53,11 +53,11 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Custom color palette
-        "custom-pink": "#FFC5C5",
-        "custom-cream": "#FFEBD8",
-        "custom-green": "#C7DCA7",
-        "custom-teal": "#89B9AD",
+        // New color palette
+        "brand-burgundy-dark": "#4A102A",
+        "brand-burgundy": "#85193C",
+        "brand-red": "#C5172E",
+        "brand-yellow": "#FCF259",
         zinc: {
           800: "#27272a",
           900: "#18181b",

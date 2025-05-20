@@ -11,7 +11,7 @@ const manrope = Manrope({
 })
 
 export const metadata = {
-  title: "CycleStudio - Indoor Cycling Premium",
+  title: "Innata Studio - El primer indoor cycling studio en Apan ",
   description:
     "Estudio de indoor cycling con clases de alta intensidad, instructores certificados y la mejor experiencia fitness.",
     generator: 'v0.dev'
@@ -23,9 +23,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es" className="dark">
-      <body className={`${manrope.variable} font-sans antialiased min-h-screen bg-black text-white`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+    <html lang="es" className="light">
+      <body className={`${manrope.variable} font-sans antialiased min-h-screen bg-white text-white`}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader />
             <main className="flex-1">{children}</main>

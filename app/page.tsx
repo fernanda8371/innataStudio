@@ -1,99 +1,86 @@
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, Instagram, Facebook, Twitter } from "lucide-react"
-import { Button } from "@/components/ui/button"
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-custom-cream text-zinc-900">
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center">
-        <div className="container px-4 md:px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 py-12">
-          {/* Left Column - Text */}
-          <div className="flex flex-col justify-center space-y-8 max-w-xl">
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-zinc-900">
-              GET SET
-              <br />
-              TO SWEAT
-            </h1>
-            <p className="text-xl md:text-2xl text-zinc-700">Where Your Fitness Goals Become Reality</p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button
-                asChild
-                size="lg"
-                className="bg-zinc-900 hover:bg-zinc-800 text-white rounded-full px-8 py-6 text-lg w-fit"
-              >
-                <Link href="/reservar">Join Us</Link>
-              </Button>
-            </div>
+    <div className="flex flex-col min-h-screen bg-white text-zinc-900">
+      {/* Hero Section - Container Style */}
+      <section className="w-full py-8 mt-16">
+        <div className="container mx-auto px-4">
+          {/* Hero Banner */}
+          <div className="relative w-full h-[600px] rounded-3xl overflow-hidden">
+            {/* Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-burgundy-dark/70 via-brand-burgundy/30 to-transparent z-10"></div>
 
-            <div className="flex items-center gap-6 pt-8">
-              <Link href="#" className="text-zinc-800 hover:text-custom-teal">
-                <Instagram className="h-6 w-6" />
-                <span className="sr-only">Instagram</span>
-              </Link>
-              <Link href="#" className="text-zinc-800 hover:text-custom-teal">
-                <Facebook className="h-6 w-6" />
-                <span className="sr-only">Facebook</span>
-              </Link>
-              <Link href="#" className="text-zinc-800 hover:text-custom-teal">
-                <Twitter className="h-6 w-6" />
-                <span className="sr-only">Twitter</span>
-              </Link>
-            </div>
+            {/* Background Image */}
+            <Image
+              src="/innataAsset2.jpg"
+              alt="cycling studio bike"
+              fill
+              className="object-cover object-center rounded-3xl"
+              priority
+            />
 
-            <div className="pt-8">
-              <Link
-                href="/reservar"
-                className="bg-custom-green/40 hover:bg-custom-green/50 text-zinc-900 rounded-full px-8 py-4 text-lg inline-flex items-center gap-2 w-full sm:w-auto justify-between"
-              >
-                <span>Book Now</span>
-                <span className="bg-zinc-900 rounded-full p-2">
-                  <ArrowRight className="h-5 w-5 text-white" />
-                </span>
-              </Link>
-            </div>
-          </div>
+            {/* Content */}
+            <div className="relative z-20 h-full flex flex-col justify-center p-8 md:p-16 max-w-2xl">
+              <h2 className="text-xl md:text-2xl font-medium text-white/90 mb-2">Innata Studio</h2>
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-6">
+                RIDE TO
+                <br />
+                SHINE
+              </h1>
+              <p className="text-lg md:text-xl text-white/90 mb-8">
+Bienvenido a nuestra comunidad.              </p>
 
-          {/* Right Column - Image */}
-          <div className="relative h-[500px] lg:h-auto rounded-3xl overflow-hidden">
-            <Image src="/fitness-woman.png" alt="Woman exercising" fill className="object-cover" priority />
-            <div className="absolute top-6 left-6">
-              <div className="bg-custom-cream/80 backdrop-blur-sm rounded-full p-3">
-                <div className="w-8 h-8 text-custom-teal">
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z"
-                      fill="currentColor"
-                      fillOpacity="0.2"
-                    />
-                    <path
-                      d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  href="/reservar"
+                  className="bg-white hover:bg-gray-100 text-brand-burgundy-dark rounded-full px-8 py-4 text-lg inline-flex items-center gap-2 w-full sm:w-auto justify-center"
+                >
+                  <span>Reserva tu clase</span>
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+
+                <Link
+                  href="/clases"
+                  className="bg-brand-yellow hover:bg-brand-yellow/90 text-brand-burgundy-dark rounded-full px-8 py-4 text-lg inline-flex items-center gap-2 w-full sm:w-auto justify-center"
+                >
+                  <span>Ver clases</span>
+                </Link>
+              </div>
+
+              <div className="flex items-center gap-6 mt-8">
+                <Link href="https://www.instagram.com/studio.innata/" className="text-white hover:text-brand-yellow">
+                  <Instagram className="h-6 w-6" />
+                  <span className="sr-only">Instagram</span>
+                </Link>
+                <Link href="#" className="text-white hover:text-brand-yellow">
+                  <Facebook className="h-6 w-6" />
+                  <span className="sr-only">Facebook</span>
+                </Link>
+
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-white">
-        <div className="container px-4 md:px-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            OUR <span className="text-custom-teal">CLASSES</span>
+      {/* Classes Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-brand-burgundy-dark">
+            Discover Our Classes
           </h2>
+          <p className="text-lg text-center mb-12 text-zinc-600 max-w-3xl mx-auto">
+            Find the perfect workout that fits your goals and schedule
+          </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-custom-cream p-8 rounded-3xl flex flex-col items-center text-center">
-              <div className="bg-white rounded-full p-4 mb-6">
+            <div className="bg-white p-8 rounded-3xl flex flex-col items-center text-center shadow-md border border-gray-100 group hover:shadow-lg transition-all">
+              <div className="bg-brand-yellow/20 rounded-full p-4 mb-6 group-hover:bg-brand-yellow/30 transition-all">
                 <svg
-                  className="h-10 w-10 text-custom-teal"
+                  className="h-10 w-10 text-brand-burgundy"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -114,16 +101,17 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-2">CYCLING</h3>
-              <p className="text-zinc-600">
-                Clases de alta intensidad con música motivadora para transformar tu cuerpo.
-              </p>
+              <h3 className="text-xl font-bold mb-2 text-brand-burgundy-dark">CYCLING</h3>
+              <p className="text-zinc-600 mb-4">High-intensity classes with motivating music to transform your body.</p>
+              <Link href="/clases" className="text-brand-burgundy font-medium hover:text-brand-red">
+                Learn More →
+              </Link>
             </div>
 
-            <div className="bg-custom-cream p-8 rounded-3xl flex flex-col items-center text-center">
-              <div className="bg-white rounded-full p-4 mb-6">
+            <div className="bg-white p-8 rounded-3xl flex flex-col items-center text-center shadow-md border border-gray-100 group hover:shadow-lg transition-all">
+              <div className="bg-brand-yellow/20 rounded-full p-4 mb-6 group-hover:bg-brand-yellow/30 transition-all">
                 <svg
-                  className="h-10 w-10 text-custom-teal"
+                  className="h-10 w-10 text-brand-burgundy"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -151,14 +139,17 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-2">HIIT</h3>
-              <p className="text-zinc-600">Entrenamiento de intervalos de alta intensidad para maximizar resultados.</p>
+              <h3 className="text-xl font-bold mb-2 text-brand-burgundy-dark">HIIT</h3>
+              <p className="text-zinc-600 mb-4">High-intensity interval training to maximize results in less time.</p>
+              <Link href="/clases" className="text-brand-burgundy font-medium hover:text-brand-red">
+                Learn More →
+              </Link>
             </div>
 
-            <div className="bg-custom-cream p-8 rounded-3xl flex flex-col items-center text-center">
-              <div className="bg-white rounded-full p-4 mb-6">
+            <div className="bg-white p-8 rounded-3xl flex flex-col items-center text-center shadow-md border border-gray-100 group hover:shadow-lg transition-all">
+              <div className="bg-brand-yellow/20 rounded-full p-4 mb-6 group-hover:bg-brand-yellow/30 transition-all">
                 <svg
-                  className="h-10 w-10 text-custom-teal"
+                  className="h-10 w-10 text-brand-burgundy"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -179,29 +170,30 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-2">YOGA</h3>
-              <p className="text-zinc-600">
-                Conecta cuerpo y mente con nuestras clases de yoga para todos los niveles.
-              </p>
+              <h3 className="text-xl font-bold mb-2 text-brand-burgundy-dark">YOGA</h3>
+              <p className="text-zinc-600 mb-4">Connect body and mind with our yoga classes for all levels.</p>
+              <Link href="/clases" className="text-brand-burgundy font-medium hover:text-brand-red">
+                Learn More →
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-custom-pink/20">
-        <div className="container px-4 md:px-6">
+      <section className="py-20 bg-brand-yellow/10">
+        <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">COMIENZA TU VIAJE HOY</h2>
-            <p className="text-xl mb-8 text-zinc-700">
-              Primera clase de cortesía para nuevos miembros. Experimenta la diferencia.
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-brand-burgundy-dark">START YOUR JOURNEY TODAY</h2>
+            <p className="text-xl mb-8 text-brand-burgundy">
+              First class free for new members. Experience the difference.
             </p>
             <Link
               href="/reservar"
-              className="bg-custom-green/40 hover:bg-custom-green/50 text-zinc-900 rounded-full px-8 py-4 text-lg inline-flex items-center gap-2"
+              className="bg-brand-burgundy hover:bg-brand-burgundy/90 text-white rounded-full px-8 py-4 text-lg inline-flex items-center gap-2"
             >
               <span>Achieve Your Goals</span>
-              <span className="bg-zinc-900 rounded-full p-2">
+              <span className="bg-brand-red rounded-full p-2">
                 <ArrowRight className="h-5 w-5 text-white" />
               </span>
             </Link>
