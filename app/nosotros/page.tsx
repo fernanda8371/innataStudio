@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Star, Quote } from "lucide-react"
+import { Star, Quote, ChevronRight } from "lucide-react"
 
 // Datos de ejemplo para los instructores
 const instructors = [
@@ -46,7 +46,7 @@ const testimonials = [
   {
     id: 1,
     name: "Sofía Ramírez",
-    text: "Desde que empecé en CycleStudio hace 6 meses, he notado un cambio increíble en mi condición física y mental. Las clases son adictivas y los instructores realmente te motivan a dar lo mejor de ti.",
+    text: "Desde que empecé en Innata Studio hace 6 meses, he notado un cambio increíble en mi condición física y mental. Las clases son adictivas y los instructores realmente te motivan a dar lo mejor de ti.",
     rating: 5,
     image: "/placeholder.svg?height=100&width=100",
   },
@@ -68,52 +68,52 @@ const testimonials = [
 
 export default function AboutPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-black text-white">
+    <div className="flex flex-col min-h-screen bg-white text-zinc-900">
       {/* Hero Section */}
-      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden pt-20">
         <div className="absolute inset-0 z-0">
           <Image
             src="/placeholder.svg?height=1080&width=1920"
             alt="Estudio de indoor cycling"
             fill
-            className="object-cover opacity-40"
+            className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black"></div>
+          <div className="absolute inset-0 bg-custom-cream/70"></div>
         </div>
 
         <div className="container relative z-10 px-4 md:px-6 space-y-6 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-            SOBRE <span className="text-blue-500">NOSOTROS</span>
+            SOBRE <span className="text-custom-teal">NOSOTROS</span>
           </h1>
-          <p className="text-xl max-w-3xl mx-auto text-gray-300">
-            Más que un estudio de indoor cycling, somos una comunidad apasionada por el fitness y el bienestar.
+          <p className="text-xl max-w-3xl mx-auto text-zinc-700">
+            Más que un estudio de fitness, somos una comunidad apasionada por el bienestar y la salud.
           </p>
         </div>
       </section>
 
       {/* Our Story Section */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-white">
         <div className="container px-4 md:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold mb-6">
-                NUESTRA <span className="text-blue-500">HISTORIA</span>
+                NUESTRA <span className="text-custom-teal">HISTORIA</span>
               </h2>
-              <div className="space-y-4 text-gray-300">
+              <div className="space-y-4 text-zinc-700">
                 <p>
-                  CycleStudio nació en 2018 con una visión clara: crear un espacio donde el fitness se convirtiera en
+                  Innata Studio nació en 2018 con una visión clara: crear un espacio donde el fitness se convirtiera en
                   una experiencia inmersiva, motivadora y accesible para todos.
                 </p>
                 <p>
-                  Fundado por un grupo de apasionados del ciclismo y el fitness, nuestro estudio comenzó con solo 10
-                  bicicletas y un puñado de miembros dedicados. Hoy, nos hemos convertido en el destino preferido para
-                  los entusiastas del indoor cycling en la ciudad.
+                  Fundado por un grupo de apasionados del fitness, nuestro estudio comenzó con solo 10 bicicletas y un
+                  puñado de miembros dedicados. Hoy, nos hemos convertido en el destino preferido para los entusiastas
+                  del fitness en la ciudad.
                 </p>
                 <p>
-                  Lo que nos distingue es nuestro enfoque en la experiencia completa: desde la calidad de nuestras
-                  bicicletas y la experticia de nuestros instructores, hasta la atmósfera energética y la comunidad que
-                  hemos construido.
+                  Lo que nos distingue es nuestro enfoque en la experiencia completa: desde la calidad de nuestro
+                  equipamiento y la experticia de nuestros instructores, hasta la atmósfera energética y la comunidad
+                  que hemos construido.
                 </p>
                 <p>
                   Creemos que el ejercicio debe ser más que una rutina—debe ser una celebración del movimiento, la
@@ -121,10 +121,10 @@ export default function AboutPage() {
                 </p>
               </div>
             </div>
-            <div className="relative h-[400px] rounded-xl overflow-hidden">
+            <div className="relative h-[400px] rounded-3xl overflow-hidden">
               <Image
                 src="/placeholder.svg?height=800&width=600"
-                alt="Historia de CycleStudio"
+                alt="Historia de Innata Studio"
                 fill
                 className="object-cover"
               />
@@ -134,46 +134,46 @@ export default function AboutPage() {
       </section>
 
       {/* Mission & Values Section */}
-      <section className="py-20 bg-zinc-900">
+      <section className="py-20 bg-custom-cream">
         <div className="container px-4 md:px-6 text-center">
           <h2 className="text-3xl font-bold mb-12">
-            MISIÓN Y <span className="text-blue-500">VALORES</span>
+            MISIÓN Y <span className="text-custom-teal">VALORES</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="bg-black border-zinc-800">
+            <Card className="bg-white border-none rounded-3xl shadow-sm">
               <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
-                  <span className="text-2xl font-bold text-blue-500">01</span>
+                <div className="w-16 h-16 rounded-full bg-custom-green/20 flex items-center justify-center mb-4">
+                  <span className="text-2xl font-bold text-custom-teal">01</span>
                 </div>
                 <h3 className="text-xl font-bold mb-2">COMUNIDAD</h3>
-                <p className="text-gray-400">
+                <p className="text-zinc-600">
                   Creamos un espacio inclusivo donde todos son bienvenidos, sin importar su nivel de experiencia o
                   condición física.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-black border-zinc-800">
+            <Card className="bg-white border-none rounded-3xl shadow-sm">
               <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
-                  <span className="text-2xl font-bold text-blue-500">02</span>
+                <div className="w-16 h-16 rounded-full bg-custom-green/20 flex items-center justify-center mb-4">
+                  <span className="text-2xl font-bold text-custom-teal">02</span>
                 </div>
                 <h3 className="text-xl font-bold mb-2">EXCELENCIA</h3>
-                <p className="text-gray-400">
+                <p className="text-zinc-600">
                   Nos comprometemos a ofrecer la mejor experiencia posible, desde nuestras instalaciones hasta la
                   calidad de nuestras clases.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-black border-zinc-800">
+            <Card className="bg-white border-none rounded-3xl shadow-sm">
               <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
-                  <span className="text-2xl font-bold text-blue-500">03</span>
+                <div className="w-16 h-16 rounded-full bg-custom-green/20 flex items-center justify-center mb-4">
+                  <span className="text-2xl font-bold text-custom-teal">03</span>
                 </div>
                 <h3 className="text-xl font-bold mb-2">INNOVACIÓN</h3>
-                <p className="text-gray-400">
+                <p className="text-zinc-600">
                   Constantemente buscamos nuevas formas de mejorar y evolucionar, incorporando las últimas tendencias y
                   tecnologías en fitness.
                 </p>
@@ -181,9 +181,9 @@ export default function AboutPage() {
             </Card>
           </div>
 
-          <div className="mt-16 max-w-3xl mx-auto">
+          <div className="mt-16 max-w-3xl mx-auto bg-white p-8 rounded-3xl shadow-sm">
             <h3 className="text-2xl font-bold mb-4">NUESTRA MISIÓN</h3>
-            <p className="text-xl text-gray-300">
+            <p className="text-xl text-zinc-700">
               Transformar vidas a través del movimiento, creando experiencias de fitness que inspiren, motiven y
               empoderen a nuestra comunidad para alcanzar su máximo potencial físico y mental.
             </p>
@@ -192,15 +192,15 @@ export default function AboutPage() {
       </section>
 
       {/* Our Team Section */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-white">
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl font-bold mb-12 text-center">
-            NUESTRO <span className="text-blue-500">EQUIPO</span>
+            NUESTRO <span className="text-custom-teal">EQUIPO</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {instructors.map((instructor) => (
-              <Card key={instructor.id} className="bg-zinc-900 border-zinc-800 overflow-hidden">
+              <Card key={instructor.id} className="bg-white border-custom-cream rounded-3xl shadow-sm overflow-hidden">
                 <div className="relative h-80">
                   <Image
                     src={instructor.image || "/placeholder.svg"}
@@ -211,11 +211,15 @@ export default function AboutPage() {
                 </div>
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold">{instructor.name}</h3>
-                  <p className="text-blue-500 mb-2">{instructor.role}</p>
-                  <p className="text-gray-400 text-sm mb-4">{instructor.bio}</p>
+                  <p className="text-custom-teal mb-2">{instructor.role}</p>
+                  <p className="text-zinc-600 text-sm mb-4">{instructor.bio}</p>
                   <div className="flex flex-wrap gap-2">
                     {instructor.specialties.map((specialty, index) => (
-                      <Badge key={index} variant="outline" className="border-zinc-700">
+                      <Badge
+                        key={index}
+                        variant="outline"
+                        className="border-custom-teal text-custom-teal bg-custom-cream/50"
+                      >
                         {specialty}
                       </Badge>
                     ))}
@@ -228,53 +232,53 @@ export default function AboutPage() {
       </section>
 
       {/* Facilities Section */}
-      <section className="py-20 bg-zinc-900">
+      <section className="py-20 bg-custom-cream">
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl font-bold mb-12 text-center">
-            NUESTRAS <span className="text-blue-500">INSTALACIONES</span>
+            NUESTRAS <span className="text-custom-teal">INSTALACIONES</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="relative h-80 rounded-xl overflow-hidden group">
+            <div className="relative h-80 rounded-3xl overflow-hidden group">
               <Image
                 src="/placeholder.svg?height=600&width=800"
                 alt="Sala principal"
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-black/50 flex items-end p-6">
-                <h3 className="text-xl font-bold">Sala Principal</h3>
+              <div className="absolute inset-0 bg-black/30 flex items-end p-6">
+                <h3 className="text-xl font-bold text-white">Sala Principal</h3>
               </div>
             </div>
 
-            <div className="relative h-80 rounded-xl overflow-hidden group">
+            <div className="relative h-80 rounded-3xl overflow-hidden group">
               <Image
                 src="/placeholder.svg?height=600&width=800"
                 alt="Vestidores"
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-black/50 flex items-end p-6">
-                <h3 className="text-xl font-bold">Vestidores Premium</h3>
+              <div className="absolute inset-0 bg-black/30 flex items-end p-6">
+                <h3 className="text-xl font-bold text-white">Vestidores Premium</h3>
               </div>
             </div>
 
-            <div className="relative h-80 rounded-xl overflow-hidden group">
+            <div className="relative h-80 rounded-3xl overflow-hidden group">
               <Image
                 src="/placeholder.svg?height=600&width=800"
                 alt="Área de hidratación"
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-black/50 flex items-end p-6">
-                <h3 className="text-xl font-bold">Área de Hidratación</h3>
+              <div className="absolute inset-0 bg-black/30 flex items-end p-6">
+                <h3 className="text-xl font-bold text-white">Área de Hidratación</h3>
               </div>
             </div>
           </div>
 
-          <div className="mt-12 bg-black p-8 rounded-xl border border-zinc-800">
+          <div className="mt-12 bg-white p-8 rounded-3xl shadow-sm">
             <h3 className="text-2xl font-bold mb-4 text-center">Equipamiento de Primera Clase</h3>
-            <p className="text-gray-300 text-center max-w-3xl mx-auto">
+            <p className="text-zinc-700 text-center max-w-3xl mx-auto">
               Contamos con bicicletas de última generación, sistema de sonido inmersivo, iluminación LED sincronizada
               con la música, y todas las comodidades para que tu experiencia sea excepcional.
             </p>
@@ -283,15 +287,15 @@ export default function AboutPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-white">
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl font-bold mb-12 text-center">
-            LO QUE DICEN <span className="text-blue-500">NUESTROS CLIENTES</span>
+            LO QUE DICEN <span className="text-custom-teal">NUESTROS CLIENTES</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial) => (
-              <Card key={testimonial.id} className="bg-zinc-900 border-zinc-800">
+              <Card key={testimonial.id} className="bg-custom-cream border-none rounded-3xl shadow-sm">
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
                     <div className="relative w-12 h-12 rounded-full overflow-hidden mr-4">
@@ -306,14 +310,14 @@ export default function AboutPage() {
                       <h4 className="font-bold">{testimonial.name}</h4>
                       <div className="flex">
                         {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                          <Star key={i} className="h-4 w-4 text-custom-teal fill-custom-teal" />
                         ))}
                       </div>
                     </div>
                   </div>
                   <div className="relative">
-                    <Quote className="h-8 w-8 text-blue-500/20 absolute top-0 left-0 -translate-x-2 -translate-y-2" />
-                    <p className="text-gray-300 relative z-10">{testimonial.text}</p>
+                    <Quote className="h-8 w-8 text-custom-teal/20 absolute top-0 left-0 -translate-x-2 -translate-y-2" />
+                    <p className="text-zinc-700 relative z-10">{testimonial.text}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -323,14 +327,20 @@ export default function AboutPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-blue-500">
+      <section className="py-16 bg-custom-teal">
         <div className="container px-4 md:px-6 text-center">
-          <h2 className="text-3xl font-bold mb-4">ÚNETE A NUESTRA COMUNIDAD</h2>
-          <p className="text-xl max-w-2xl mx-auto mb-8">
-            Experimenta por ti mismo lo que hace especial a CycleStudio. Tu primera clase es gratis.
+          <h2 className="text-3xl font-bold mb-4 text-white">ÚNETE A NUESTRA COMUNIDAD</h2>
+          <p className="text-xl max-w-2xl mx-auto mb-8 text-white/90">
+            Experimenta por ti mismo lo que hace especial a Innata Studio. Tu primera clase es gratis.
           </p>
-          <Button asChild size="lg" className="bg-black hover:bg-zinc-800 text-white font-bold px-8 py-6 text-lg">
-            <Link href="/reservar">RESERVA TU CLASE GRATIS</Link>
+          <Button
+            asChild
+            size="lg"
+            className="bg-white hover:bg-white/90 text-custom-teal font-bold px-8 py-6 text-lg rounded-full"
+          >
+            <Link href="/reservar" className="flex items-center gap-1">
+              RESERVA TU CLASE GRATIS <ChevronRight className="h-4 w-4" />
+            </Link>
           </Button>
         </div>
       </section>
