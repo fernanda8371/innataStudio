@@ -19,19 +19,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-custom-cream border-r border-custom-pink/20 p-4 transition-transform duration-300 md:relative md:translate-x-0 ${
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-100 p-4 transition-transform duration-300 md:relative md:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex justify-between items-center mb-8">
           <div className="font-extrabold text-2xl tracking-tight">
-           					<Link href="/" className="flex items-center" aria-label="Inicio">
-						<img
-							src="/innataBlack.png"
-							alt="Logo Innata"
-							className="h-20 w-auto max-w-[150px]"
-						/>
-					</Link>
+            INNATA<span className="text-[#4A102A]">ADMIN</span>
           </div>
           <Button
             variant="ghost"
@@ -46,42 +40,42 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="space-y-2">
           <Link
             href="/admin"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-zinc-900 hover:bg-custom-pink/20 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <LayoutDashboard className="h-5 w-5" />
             <span>Dashboard</span>
           </Link>
           <Link
             href="/admin/reservations"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-zinc-900 hover:bg-custom-pink/20 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <CalendarDays className="h-5 w-5" />
             <span>Reservaciones</span>
           </Link>
           <Link
             href="/admin/payments"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-zinc-900 hover:bg-custom-pink/20 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <CreditCard className="h-5 w-5" />
             <span>Pagos</span>
           </Link>
           <Link
             href="/admin/classes"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-zinc-900 hover:bg-custom-pink/20 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <BarChart3 className="h-5 w-5" />
             <span>Clases</span>
           </Link>
           <Link
             href="/admin/users"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-zinc-900 hover:bg-custom-pink/20 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <Users className="h-5 w-5" />
             <span>Usuarios</span>
           </Link>
           <Link
             href="/admin/settings"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-zinc-900 hover:bg-custom-pink/20 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <Settings className="h-5 w-5" />
             <span>Configuración</span>
@@ -91,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="absolute bottom-4 left-4 right-4">
           <Button
             variant="outline"
-            className="w-full border-custom-teal text-custom-teal hover:bg-custom-cream"
+            className="w-full border-[#4A102A] text-[#4A102A] hover:bg-[#FCF259]/10"
             onClick={() => (window.location.href = "/")}
           >
             Volver al Sitio
@@ -101,7 +95,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <header className="sticky top-0 z-10 bg-white border-b border-custom-cream p-4">
+        <header className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button

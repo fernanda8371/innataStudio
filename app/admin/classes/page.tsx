@@ -31,7 +31,8 @@ const classes = [
       "Pedalea al ritmo de la música con esta clase energética que combina intervalos y coreografía. Perfecta para todos los niveles.",
     instructor: "Carlos Mendez",
     duration: "45 min",
-    capacity: 25,
+    capacity: 10,
+    enrolled: 7,
     intensity: "Media",
     category: "ritmo",
   },
@@ -42,7 +43,8 @@ const classes = [
       "Enfocado en potencia y resistencia. Prepárate para un desafío intenso con intervalos de alta intensidad que te llevarán al límite.",
     instructor: "Ana Torres",
     duration: "60 min",
-    capacity: 20,
+    capacity: 10,
+    enrolled: 10,
     intensity: "Alta",
     category: "potencia",
   },
@@ -53,7 +55,8 @@ const classes = [
       "Mejora tu resistencia cardiovascular con esta clase de ritmo constante y desafiante. Ideal para mejorar tu capacidad aeróbica.",
     instructor: "Miguel Ángel",
     duration: "75 min",
-    capacity: 22,
+    capacity: 10,
+    enrolled: 4,
     intensity: "Media-Alta",
     category: "resistencia",
   },
@@ -64,7 +67,8 @@ const classes = [
       "Entrenamiento de intervalos de alta intensidad para maximizar la quema de calorías en poco tiempo. Alternando esfuerzos máximos y recuperación.",
     instructor: "Laura Gómez",
     duration: "30 min",
-    capacity: 18,
+    capacity: 10,
+    enrolled: 8,
     intensity: "Muy Alta",
     category: "hiit",
   },
@@ -75,7 +79,8 @@ const classes = [
       "Sesión de recuperación activa con resistencia ligera y enfoque en técnica. Perfecta para días de descanso activo o principiantes.",
     instructor: "Carlos Mendez",
     duration: "45 min",
-    capacity: 25,
+    capacity: 10,
+    enrolled: 3,
     intensity: "Baja",
     category: "recuperacion",
   },
@@ -86,7 +91,8 @@ const classes = [
       "Combina el ciclismo rítmico con segmentos de entrenamiento de fuerza fuera de la bicicleta. Una clase completa para todo el cuerpo.",
     instructor: "Ana Torres",
     duration: "60 min",
-    capacity: 20,
+    capacity: 10,
+    enrolled: 6,
     intensity: "Media-Alta",
     category: "ritmo",
   },
@@ -97,61 +103,173 @@ const weeklySchedule = [
   {
     day: "Lunes",
     classes: [
-      { time: "07:00", name: "RHYTHM RIDE", instructor: "Carlos Mendez", duration: "45 min" },
-      { time: "12:00", name: "HIIT CYCLE", instructor: "Laura Gómez", duration: "30 min" },
-      { time: "18:00", name: "POWER CYCLE", instructor: "Ana Torres", duration: "60 min" },
-      { time: "19:30", name: "RHYTHM RIDE", instructor: "Carlos Mendez", duration: "45 min" },
+      {
+        time: "07:00",
+        name: "RHYTHM RIDE",
+        instructor: "Carlos Mendez",
+        duration: "45 min",
+        capacity: 10,
+        enrolled: 7,
+      },
+      { time: "12:00", name: "HIIT CYCLE", instructor: "Laura Gómez", duration: "30 min", capacity: 10, enrolled: 8 },
+      { time: "18:00", name: "POWER CYCLE", instructor: "Ana Torres", duration: "60 min", capacity: 10, enrolled: 10 },
+      {
+        time: "19:30",
+        name: "RHYTHM RIDE",
+        instructor: "Carlos Mendez",
+        duration: "45 min",
+        capacity: 10,
+        enrolled: 5,
+      },
     ],
   },
   {
     day: "Martes",
     classes: [
-      { time: "07:00", name: "HIIT CYCLE", instructor: "Laura Gómez", duration: "30 min" },
-      { time: "12:00", name: "RECOVERY RIDE", instructor: "Carlos Mendez", duration: "45 min" },
-      { time: "18:00", name: "ENDURANCE RIDE", instructor: "Miguel Ángel", duration: "75 min" },
-      { time: "20:00", name: "RHYTHM & STRENGTH", instructor: "Ana Torres", duration: "60 min" },
+      { time: "07:00", name: "HIIT CYCLE", instructor: "Laura Gómez", duration: "30 min", capacity: 10, enrolled: 6 },
+      {
+        time: "12:00",
+        name: "RECOVERY RIDE",
+        instructor: "Carlos Mendez",
+        duration: "45 min",
+        capacity: 10,
+        enrolled: 3,
+      },
+      {
+        time: "18:00",
+        name: "ENDURANCE RIDE",
+        instructor: "Miguel Ángel",
+        duration: "75 min",
+        capacity: 10,
+        enrolled: 4,
+      },
+      {
+        time: "20:00",
+        name: "RHYTHM & STRENGTH",
+        instructor: "Ana Torres",
+        duration: "60 min",
+        capacity: 10,
+        enrolled: 6,
+      },
     ],
   },
   {
     day: "Miércoles",
     classes: [
-      { time: "07:00", name: "POWER CYCLE", instructor: "Ana Torres", duration: "60 min" },
-      { time: "12:00", name: "RHYTHM RIDE", instructor: "Carlos Mendez", duration: "45 min" },
-      { time: "18:00", name: "HIIT CYCLE", instructor: "Laura Gómez", duration: "30 min" },
-      { time: "19:00", name: "ENDURANCE RIDE", instructor: "Miguel Ángel", duration: "75 min" },
+      { time: "07:00", name: "POWER CYCLE", instructor: "Ana Torres", duration: "60 min", capacity: 10, enrolled: 9 },
+      {
+        time: "12:00",
+        name: "RHYTHM RIDE",
+        instructor: "Carlos Mendez",
+        duration: "45 min",
+        capacity: 10,
+        enrolled: 7,
+      },
+      { time: "18:00", name: "HIIT CYCLE", instructor: "Laura Gómez", duration: "30 min", capacity: 10, enrolled: 8 },
+      {
+        time: "19:00",
+        name: "ENDURANCE RIDE",
+        instructor: "Miguel Ángel",
+        duration: "75 min",
+        capacity: 10,
+        enrolled: 4,
+      },
     ],
   },
   {
     day: "Jueves",
     classes: [
-      { time: "07:00", name: "RHYTHM & STRENGTH", instructor: "Ana Torres", duration: "60 min" },
-      { time: "12:00", name: "HIIT CYCLE", instructor: "Laura Gómez", duration: "30 min" },
-      { time: "18:00", name: "RECOVERY RIDE", instructor: "Carlos Mendez", duration: "45 min" },
-      { time: "19:30", name: "POWER CYCLE", instructor: "Ana Torres", duration: "60 min" },
+      {
+        time: "07:00",
+        name: "RHYTHM & STRENGTH",
+        instructor: "Ana Torres",
+        duration: "60 min",
+        capacity: 10,
+        enrolled: 6,
+      },
+      { time: "12:00", name: "HIIT CYCLE", instructor: "Laura Gómez", duration: "30 min", capacity: 10, enrolled: 8 },
+      {
+        time: "18:00",
+        name: "RECOVERY RIDE",
+        instructor: "Carlos Mendez",
+        duration: "45 min",
+        capacity: 10,
+        enrolled: 3,
+      },
+      { time: "19:30", name: "POWER CYCLE", instructor: "Ana Torres", duration: "60 min", capacity: 10, enrolled: 9 },
     ],
   },
   {
     day: "Viernes",
     classes: [
-      { time: "07:00", name: "ENDURANCE RIDE", instructor: "Miguel Ángel", duration: "75 min" },
-      { time: "12:00", name: "RHYTHM RIDE", instructor: "Carlos Mendez", duration: "45 min" },
-      { time: "18:00", name: "HIIT CYCLE", instructor: "Laura Gómez", duration: "30 min" },
-      { time: "19:00", name: "RHYTHM & STRENGTH", instructor: "Ana Torres", duration: "60 min" },
+      {
+        time: "07:00",
+        name: "ENDURANCE RIDE",
+        instructor: "Miguel Ángel",
+        duration: "75 min",
+        capacity: 10,
+        enrolled: 4,
+      },
+      {
+        time: "12:00",
+        name: "RHYTHM RIDE",
+        instructor: "Carlos Mendez",
+        duration: "45 min",
+        capacity: 10,
+        enrolled: 7,
+      },
+      { time: "18:00", name: "HIIT CYCLE", instructor: "Laura Gómez", duration: "30 min", capacity: 10, enrolled: 8 },
+      {
+        time: "19:00",
+        name: "RHYTHM & STRENGTH",
+        instructor: "Ana Torres",
+        duration: "60 min",
+        capacity: 10,
+        enrolled: 6,
+      },
     ],
   },
   {
     day: "Sábado",
     classes: [
-      { time: "09:00", name: "POWER CYCLE", instructor: "Ana Torres", duration: "60 min" },
-      { time: "11:00", name: "RHYTHM RIDE", instructor: "Carlos Mendez", duration: "45 min" },
-      { time: "16:00", name: "ENDURANCE RIDE", instructor: "Miguel Ángel", duration: "75 min" },
+      { time: "09:00", name: "POWER CYCLE", instructor: "Ana Torres", duration: "60 min", capacity: 10, enrolled: 9 },
+      {
+        time: "11:00",
+        name: "RHYTHM RIDE",
+        instructor: "Carlos Mendez",
+        duration: "45 min",
+        capacity: 10,
+        enrolled: 7,
+      },
+      {
+        time: "16:00",
+        name: "ENDURANCE RIDE",
+        instructor: "Miguel Ángel",
+        duration: "75 min",
+        capacity: 10,
+        enrolled: 4,
+      },
     ],
   },
   {
     day: "Domingo",
     classes: [
-      { time: "10:00", name: "RHYTHM & STRENGTH", instructor: "Ana Torres", duration: "60 min" },
-      { time: "12:00", name: "RECOVERY RIDE", instructor: "Carlos Mendez", duration: "45 min" },
+      {
+        time: "10:00",
+        name: "RHYTHM & STRENGTH",
+        instructor: "Ana Torres",
+        duration: "60 min",
+        capacity: 10,
+        enrolled: 6,
+      },
+      {
+        time: "12:00",
+        name: "RECOVERY RIDE",
+        instructor: "Carlos Mendez",
+        duration: "45 min",
+        capacity: 10,
+        enrolled: 3,
+      },
     ],
   },
 ]
@@ -199,21 +317,21 @@ export default function ClassesPage() {
       <div className="p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Gestión de Clases</h1>
-            <p className="text-gray-400">Administra los tipos de clases y horarios</p>
+            <h1 className="text-2xl font-bold text-[#4A102A]">Gestión de Clases</h1>
+            <p className="text-gray-600">Administra los tipos de clases y horarios</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Dialog open={isNewClassOpen} onOpenChange={setIsNewClassOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-blue-500 hover:bg-blue-600">
+                <Button className="bg-[#4A102A] hover:bg-[#85193C] text-white">
                   <PlusCircle className="h-4 w-4 mr-2" /> Nueva Clase
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+              <DialogContent className="bg-white border-gray-200 text-zinc-900">
                 <DialogHeader>
-                  <DialogTitle>Crear Nuevo Tipo de Clase</DialogTitle>
-                  <DialogDescription className="text-gray-400">
+                  <DialogTitle className="text-[#4A102A]">Crear Nuevo Tipo de Clase</DialogTitle>
+                  <DialogDescription className="text-gray-600">
                     Complete los detalles para crear un nuevo tipo de clase
                   </DialogDescription>
                 </DialogHeader>
@@ -226,17 +344,17 @@ export default function ClassesPage() {
                         type="text"
                         id="name"
                         placeholder="Ej: POWER CYCLE"
-                        className="bg-zinc-950 border-zinc-800 text-white"
+                        className="bg-white border-gray-200 text-zinc-900"
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="category">Categoría</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white border-gray-200 text-zinc-900">
                           <SelectValue placeholder="Seleccionar categoría" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white border-gray-200 text-zinc-900">
                           <SelectItem value="ritmo">Ritmo</SelectItem>
                           <SelectItem value="potencia">Potencia</SelectItem>
                           <SelectItem value="resistencia">Resistencia</SelectItem>
@@ -249,10 +367,10 @@ export default function ClassesPage() {
                     <div className="space-y-2">
                       <Label htmlFor="duration">Duración</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white border-gray-200 text-zinc-900">
                           <SelectValue placeholder="Seleccionar duración" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white border-gray-200 text-zinc-900">
                           <SelectItem value="30">30 minutos</SelectItem>
                           <SelectItem value="45">45 minutos</SelectItem>
                           <SelectItem value="60">60 minutos</SelectItem>
@@ -264,10 +382,10 @@ export default function ClassesPage() {
                     <div className="space-y-2">
                       <Label htmlFor="intensity">Intensidad</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white border-gray-200 text-zinc-900">
                           <SelectValue placeholder="Seleccionar intensidad" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white border-gray-200 text-zinc-900">
                           <SelectItem value="baja">Baja</SelectItem>
                           <SelectItem value="media">Media</SelectItem>
                           <SelectItem value="media-alta">Media-Alta</SelectItem>
@@ -282,9 +400,12 @@ export default function ClassesPage() {
                       <Input
                         type="number"
                         id="capacity"
-                        placeholder="20"
-                        className="bg-zinc-950 border-zinc-800 text-white"
+                        placeholder="10"
+                        value="10"
+                        readOnly
+                        className="bg-white border-gray-200 text-zinc-900"
                       />
+                      <p className="text-xs text-gray-500">Todas las clases tienen un límite de 10 personas</p>
                     </div>
                   </div>
 
@@ -294,7 +415,7 @@ export default function ClassesPage() {
                       type="text"
                       id="description"
                       placeholder="Breve descripción de la clase"
-                      className="bg-zinc-950 border-zinc-800 text-white"
+                      className="bg-white border-gray-200 text-zinc-900"
                     />
                   </div>
                 </div>
@@ -303,11 +424,14 @@ export default function ClassesPage() {
                   <Button
                     variant="outline"
                     onClick={() => setIsNewClassOpen(false)}
-                    className="border-zinc-700 text-white hover:bg-zinc-800"
+                    className="border-gray-200 text-zinc-900 hover:bg-gray-100"
                   >
                     Cancelar
                   </Button>
-                  <Button className="bg-blue-500 hover:bg-blue-600" onClick={() => setIsNewClassOpen(false)}>
+                  <Button
+                    className="bg-[#4A102A] hover:bg-[#85193C] text-white"
+                    onClick={() => setIsNewClassOpen(false)}
+                  >
                     Crear Clase
                   </Button>
                 </DialogFooter>
@@ -316,14 +440,14 @@ export default function ClassesPage() {
 
             <Dialog open={isScheduleClassOpen} onOpenChange={setIsScheduleClassOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="border-zinc-700 text-white hover:bg-zinc-800">
+                <Button variant="outline" className="border-[#4A102A] text-[#4A102A] hover:bg-[#FCF259]/10">
                   <Clock className="h-4 w-4 mr-2" /> Programar Clase
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+              <DialogContent className="bg-white border-gray-200 text-zinc-900">
                 <DialogHeader>
-                  <DialogTitle>Programar Clase en el Horario</DialogTitle>
-                  <DialogDescription className="text-gray-400">
+                  <DialogTitle className="text-[#4A102A]">Programar Clase en el Horario</DialogTitle>
+                  <DialogDescription className="text-gray-600">
                     Seleccione los detalles para programar una clase
                   </DialogDescription>
                 </DialogHeader>
@@ -333,10 +457,10 @@ export default function ClassesPage() {
                     <div className="space-y-2">
                       <Label htmlFor="class-type">Tipo de Clase</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white border-gray-200 text-zinc-900">
                           <SelectValue placeholder="Seleccionar clase" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white border-gray-200 text-zinc-900">
                           {classes.map((classItem) => (
                             <SelectItem key={classItem.id} value={classItem.id.toString()}>
                               {classItem.name}
@@ -349,10 +473,10 @@ export default function ClassesPage() {
                     <div className="space-y-2">
                       <Label htmlFor="instructor">Instructor</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white border-gray-200 text-zinc-900">
                           <SelectValue placeholder="Seleccionar instructor" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white border-gray-200 text-zinc-900">
                           {instructors.map((instructor) => (
                             <SelectItem key={instructor.id} value={instructor.id.toString()}>
                               {instructor.name}
@@ -367,7 +491,7 @@ export default function ClassesPage() {
                       <Input
                         type="date"
                         id="date"
-                        className="bg-zinc-950 border-zinc-800 text-white"
+                        className="bg-white border-gray-200 text-zinc-900"
                         value={date ? format(date, "yyyy-MM-dd") : ""}
                       />
                     </div>
@@ -375,10 +499,10 @@ export default function ClassesPage() {
                     <div className="space-y-2">
                       <Label htmlFor="time">Hora</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white border-gray-200 text-zinc-900">
                           <SelectValue placeholder="Seleccionar hora" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white border-gray-200 text-zinc-900">
                           {timeSlots.map((time) => (
                             <SelectItem key={time} value={time}>
                               {time}
@@ -391,16 +515,29 @@ export default function ClassesPage() {
                     <div className="space-y-2">
                       <Label htmlFor="repeat">Repetir</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white border-gray-200 text-zinc-900">
                           <SelectValue placeholder="Seleccionar frecuencia" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white border-gray-200 text-zinc-900">
                           <SelectItem value="once">Una vez</SelectItem>
                           <SelectItem value="daily">Diariamente</SelectItem>
                           <SelectItem value="weekly">Semanalmente</SelectItem>
                           <SelectItem value="monthly">Mensualmente</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="capacity">Capacidad</Label>
+                      <Input
+                        type="number"
+                        id="capacity"
+                        placeholder="10"
+                        value="10"
+                        readOnly
+                        className="bg-white border-gray-200 text-zinc-900"
+                      />
+                      <p className="text-xs text-gray-500">Todas las clases tienen un límite de 10 personas</p>
                     </div>
                   </div>
                 </div>
@@ -409,11 +546,14 @@ export default function ClassesPage() {
                   <Button
                     variant="outline"
                     onClick={() => setIsScheduleClassOpen(false)}
-                    className="border-zinc-700 text-white hover:bg-zinc-800"
+                    className="border-gray-200 text-zinc-900 hover:bg-gray-100"
                   >
                     Cancelar
                   </Button>
-                  <Button className="bg-blue-500 hover:bg-blue-600" onClick={() => setIsScheduleClassOpen(false)}>
+                  <Button
+                    className="bg-[#4A102A] hover:bg-[#85193C] text-white"
+                    onClick={() => setIsScheduleClassOpen(false)}
+                  >
                     Programar Clase
                   </Button>
                 </DialogFooter>
@@ -423,11 +563,17 @@ export default function ClassesPage() {
         </div>
 
         <Tabs defaultValue="classes" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="classes" className="text-lg">
+          <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100">
+            <TabsTrigger
+              value="classes"
+              className="text-lg data-[state=active]:bg-[#4A102A] data-[state=active]:text-white"
+            >
               Tipos de Clases
             </TabsTrigger>
-            <TabsTrigger value="schedule" className="text-lg">
+            <TabsTrigger
+              value="schedule"
+              className="text-lg data-[state=active]:bg-[#4A102A] data-[state=active]:text-white"
+            >
               Horario Semanal
             </TabsTrigger>
           </TabsList>
@@ -439,7 +585,7 @@ export default function ClassesPage() {
                 <Input
                   type="search"
                   placeholder="Buscar por nombre, instructor o categoría..."
-                  className="pl-8 bg-zinc-950 border-zinc-800 text-white w-full"
+                  className="pl-8 bg-white border-gray-200 text-zinc-900 w-full"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -448,43 +594,45 @@ export default function ClassesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredClasses.map((classItem) => (
-                <Card key={classItem.id} className="bg-zinc-900 border-zinc-800">
+                <Card key={classItem.id} className="bg-white border-gray-200 hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-xl font-bold">{classItem.name}</h3>
+                      <h3 className="text-xl font-bold text-[#4A102A]">{classItem.name}</h3>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-[#4A102A]">
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-[#C5172E]">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                    <p className="text-gray-400 text-sm mb-4">{classItem.description}</p>
+                    <p className="text-gray-600 text-sm mb-4">{classItem.description}</p>
                     <div className="grid grid-cols-2 gap-2 mb-4">
-                      <div className="flex items-center text-gray-300 text-sm">
-                        <Clock className="h-4 w-4 mr-2 text-blue-500" />
+                      <div className="flex items-center text-gray-700 text-sm">
+                        <Clock className="h-4 w-4 mr-2 text-[#85193C]" />
                         <span>{classItem.duration}</span>
                       </div>
-                      <div className="flex items-center text-gray-300 text-sm">
-                        <Users className="h-4 w-4 mr-2 text-blue-500" />
-                        <span>Capacidad: {classItem.capacity}</span>
+                      <div className="flex items-center text-gray-700 text-sm">
+                        <Users className="h-4 w-4 mr-2 text-[#85193C]" />
+                        <span>
+                          Capacidad: {classItem.enrolled}/{classItem.capacity}
+                        </span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-400">Instructor: {classItem.instructor}</span>
+                      <span className="text-sm text-gray-600">Instructor: {classItem.instructor}</span>
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
                           classItem.intensity === "Baja"
-                            ? "bg-green-500/20 text-green-500"
+                            ? "bg-green-500/20 text-green-700"
                             : classItem.intensity === "Media"
-                              ? "bg-blue-500/20 text-blue-500"
+                              ? "bg-blue-500/20 text-blue-700"
                               : classItem.intensity === "Media-Alta"
-                                ? "bg-yellow-500/20 text-yellow-500"
+                                ? "bg-yellow-500/20 text-yellow-700"
                                 : classItem.intensity === "Alta"
-                                  ? "bg-orange-500/20 text-orange-500"
-                                  : "bg-red-500/20 text-red-500"
+                                  ? "bg-orange-500/20 text-orange-700"
+                                  : "bg-red-500/20 text-red-700"
                         }`}
                       >
                         {classItem.intensity}
@@ -498,39 +646,39 @@ export default function ClassesPage() {
 
           <TabsContent value="schedule">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card className="bg-zinc-900 border-zinc-800 col-span-1">
+              <Card className="bg-white border-gray-200 col-span-1">
                 <CardHeader>
-                  <CardTitle className="text-lg">Calendario</CardTitle>
+                  <CardTitle className="text-lg text-[#4A102A]">Calendario</CardTitle>
                 </CardHeader>
                 <CardContent className="overflow-hidden flex justify-center px-0">
                   <div className="w-full max-w-[280px]">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    locale={es}
-                    className="bg-zinc-900 text-white"
-                    classNames={{
-                      day_selected: "bg-blue-500 text-white",
-                      day_today: "bg-zinc-800 text-white",
-                      day: "text-white hover:bg-zinc-800",
-                    }}
-                  />
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      locale={es}
+                      className="bg-white text-zinc-900"
+                      classNames={{
+                        day_selected: "bg-[#4A102A] text-white",
+                        day_today: "bg-gray-100 text-zinc-900",
+                        day: "text-zinc-900 hover:bg-gray-100",
+                      }}
+                    />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-zinc-900 border-zinc-800 col-span-1 md:col-span-3">
+              <Card className="bg-white border-gray-200 col-span-1 md:col-span-3">
                 <CardHeader>
-                  <CardTitle className="text-lg">Clases Programadas</CardTitle>
+                  <CardTitle className="text-lg text-[#4A102A]">Clases Programadas</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
                     <div className="min-w-[800px]">
                       <div className="grid grid-cols-8 gap-2 mb-4">
-                        <div className="bg-zinc-950 p-4 font-bold text-center">Hora</div>
+                        <div className="bg-gray-100 p-4 font-bold text-center text-[#4A102A]">Hora</div>
                         {weeklySchedule.map((day) => (
-                          <div key={day.day} className="bg-zinc-950 p-4 font-bold text-center">
+                          <div key={day.day} className="bg-gray-100 p-4 font-bold text-center text-[#4A102A]">
                             {day.day}
                           </div>
                         ))}
@@ -539,26 +687,28 @@ export default function ClassesPage() {
                       {["07:00", "09:00", "10:00", "11:00", "12:00", "16:00", "18:00", "19:00", "19:30", "20:00"].map(
                         (time) => (
                           <div key={time} className="grid grid-cols-8 gap-2 mb-2">
-                            <div className="bg-zinc-950 p-4 flex items-center justify-center">{time}</div>
+                            <div className="bg-gray-50 p-4 flex items-center justify-center text-gray-700">{time}</div>
                             {weeklySchedule.map((day) => {
                               const classForTimeSlot = day.classes.find((c) => c.time === time)
                               return (
                                 <div
                                   key={`${day.day}-${time}`}
                                   className={`p-2 ${
-                                    classForTimeSlot ? "bg-zinc-800 border border-zinc-700" : "bg-zinc-950"
+                                    classForTimeSlot ? "bg-white border border-gray-200 shadow-sm" : "bg-gray-50"
                                   }`}
                                 >
                                   {classForTimeSlot ? (
                                     <div className="text-center relative group">
-                                      <p className="font-bold text-sm">{classForTimeSlot.name}</p>
-                                      <p className="text-xs text-gray-400">{classForTimeSlot.instructor}</p>
-                                      <p className="text-xs text-gray-400">{classForTimeSlot.duration}</p>
+                                      <p className="font-bold text-sm text-[#4A102A]">{classForTimeSlot.name}</p>
+                                      <p className="text-xs text-gray-600">{classForTimeSlot.instructor}</p>
+                                      <p className="text-xs text-gray-600">
+                                        {classForTimeSlot.enrolled}/{classForTimeSlot.capacity} alumnos
+                                      </p>
                                       <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Button
                                           variant="ghost"
                                           size="icon"
-                                          className="h-6 w-6 text-gray-400 hover:text-white"
+                                          className="h-6 w-6 text-gray-400 hover:text-[#4A102A]"
                                         >
                                           <Edit className="h-3 w-3" />
                                         </Button>
