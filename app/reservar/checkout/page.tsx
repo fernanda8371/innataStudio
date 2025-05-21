@@ -18,7 +18,7 @@ export default function CheckoutPage() {
     date: "Lunes, 22 de Mayo, 2023",
     time: "18:00",
     instructor: "Carlos Mendez",
-    price: 250,
+    price: 0,
   }
 
   const handlePaymentSuccess = (paymentId: string) => {

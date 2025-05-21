@@ -26,7 +26,7 @@ export default function RegistroPage() {
 
           {/* Botones de redes sociales */}
           <div className="space-y-4 mb-6">
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2 h-12 border-gray-300">
+            <Button variant="outline" className="w-full flex items-center justify-center gap-2 h-12 border-gray-300 text-black">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M18.1711 8.36788H17.4998V8.33329H9.99984V11.6666H14.7094C14.0223 13.607 12.1761 15 9.99984 15C7.23859 15 4.99984 12.7612 4.99984 10C4.99984 7.23871 7.23859 5 9.99984 5C11.2744 5 12.4344 5.48683 13.3177 6.28537L15.6744 3.92871C14.1887 2.56204 12.1932 1.66663 9.99984 1.66663C5.39775 1.66663 1.6665 5.39788 1.6665 10C1.6665 14.6021 5.39775 18.3333 9.99984 18.3333C14.6019 18.3333 18.3332 14.6021 18.3332 10C18.3332 9.44121 18.2757 8.89583 18.1711 8.36788Z"
@@ -47,15 +47,7 @@ export default function RegistroPage() {
               </svg>
               Registrarse con Google
             </Button>
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2 h-12 border-gray-300">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M10 1.66663C5.39797 1.66663 1.66663 5.39797 1.66663 10C1.66663 14.602 5.39797 18.3333 10 18.3333C14.602 18.3333 18.3333 14.602 18.3333 10C18.3333 5.39797 14.602 1.66663 10 1.66663ZM14.6833 7.08329C14.6917 7.16663 14.6917 7.25829 14.6917 7.34996C14.6917 10.6833 12.2333 14.5 7.65831 14.5C6.35831 14.5 5.14997 14.1 4.16663 13.4167C4.34997 13.4417 4.52497 13.45 4.71663 13.45C5.79163 13.45 6.77497 13.0667 7.55831 12.4167C6.55831 12.3917 5.72497 11.7417 5.44997 10.8417C5.78331 10.9 6.08331 10.9 6.42497 10.8167C5.38331 10.6 4.60831 9.69163 4.60831 8.58329V8.54996C4.89997 8.71663 5.24163 8.81663 5.59997 8.83329C5.28331 8.61663 5.02497 8.32496 4.84997 7.98329C4.67497 7.64163 4.58331 7.26246 4.58331 6.87496C4.58331 6.44996 4.69163 6.05829 4.88331 5.71663C6.00831 7.09996 7.69163 7.99996 9.58331 8.10829C9.24997 6.74163 10.2833 5.64163 11.5333 5.64163C12.1167 5.64163 12.6417 5.88329 13.0167 6.28329C13.4833 6.19163 13.925 6.01663 14.3167 5.77496C14.15 6.26663 13.8167 6.67496 13.3833 6.93329C13.8 6.87496 14.2 6.74996 14.575 6.58329C14.3167 6.99996 13.9833 7.37496 13.6 7.68329C14.6833 7.08329 14.6833 7.08329 14.6833 7.08329Z"
-                  fill="#1DA1F2"
-                />
-              </svg>
-              Registrarse con Twitter
-            </Button>
+
           </div>
 
           {/* Separador */}
@@ -108,7 +100,7 @@ export default function RegistroPage() {
             </Button>
           </div>
 
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-6 text-center text-sm text-black">
             ¿Ya tienes una cuenta?{" "}
             <Link href="/login" className="text-[#85193C] font-medium hover:underline">
               Inicia Sesión

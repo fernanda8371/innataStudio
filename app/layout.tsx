@@ -1,6 +1,6 @@
 import type React from "react"
 import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
+import { FooterWrapper } from "@/components/footer-wrapper"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Manrope } from "next/font/google"
 import "./globals.css"
@@ -29,7 +29,7 @@ export default function RootLayout({
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader />
             <main className="flex-1">{children}</main>
-            <SiteFooter />
+            <FooterWrapper />
           </div>
         </ThemeProvider>
       </body>

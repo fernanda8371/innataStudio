@@ -8,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { CalendarIcon, Clock, ChevronRight } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { StripeCheckout } from "@/components/stripe-checkout"
+import { toast } from "@/components/ui/use-toast"
 
 const timeSlots = [
   "06:00",
@@ -35,6 +38,39 @@ export default function BookingPage() {
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [selectedClass, setSelectedClass] = useState<number | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false)
+
+  const handlePaymentSuccess = (paymentId: string) => {
+    setIsPaymentOpen(false)
+    setIsConfirmationOpen(true)
+    toast({
+      title: "Reserva confirmada",
+      description: "Se ha enviado un correo de confirmación a tu email.",
+    })
+  }
+
+  const handlePaymentCancel = () => {
+    setIsPaymentOpen(false)
+    toast({
+      title: "Pago cancelado",
+      description: "El proceso de pago ha sido cancelado.",
+      variant: "destructive",
+    })
+  }
+
+  const handleConfirmBooking = () => {
+    if (!date || !selectedClass || !selectedTime) return
+    setIsPaymentOpen(true)
+  }
+
+  const handleClassSelect = (classId: number) => {
+    setSelectedClass(classId)
+    const calendarTab = document.querySelector('[data-value="calendar"]') as HTMLElement
+    if (calendarTab) {
+      calendarTab.click()
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-zinc-900">
@@ -112,7 +148,7 @@ export default function BookingPage() {
                               ? "bg-brand-burgundy hover:bg-brand-burgundy/90 text-white"
                               : "border-brand-burgundy text-brand-burgundy hover:bg-gray-50"
                           }`}
-                          onClick={() => setSelectedClass(classItem.id)}
+                          onClick={() => handleClassSelect(classItem.id)}
                         >
                           <span>{classItem.name}</span>
                           <span className="text-sm opacity-70">{classItem.duration}</span>
@@ -185,6 +221,7 @@ export default function BookingPage() {
                   <Button
                     className="w-full mt-6 bg-brand-burgundy hover:bg-brand-burgundy/90 font-bold text-lg py-6 rounded-full text-white"
                     disabled={!date || !selectedClass || !selectedTime}
+                    onClick={handleConfirmBooking}
                   >
                     <span className="flex items-center gap-1">
                       CONFIRMAR RESERVA <ChevronRight className="h-4 w-4" />
@@ -207,10 +244,7 @@ export default function BookingPage() {
                       </div>
                       <Button
                         className="bg-brand-burgundy hover:bg-brand-burgundy/90 text-white rounded-full"
-                        onClick={() => {
-                          setSelectedClass(classItem.id)
-                          document.querySelector('[data-value="calendar"]')?.click()
-                        }}
+                        onClick={() => handleClassSelect(classItem.id)}
                       >
                         <span className="flex items-center gap-1">
                           RESERVAR <ChevronRight className="h-4 w-4" />
@@ -259,6 +293,68 @@ export default function BookingPage() {
           </div>
         </div>
       </section>
+
+      {/* Payment Dialog */}
+      <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
+        <DialogContent className="bg-white border-gray-200 text-zinc-900">
+          <DialogHeader>
+            <DialogTitle className="text-[#4A102A]">Procesar Pago</DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Completa el pago para confirmar tu reserva
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <StripeCheckout
+              amount={69}
+              description={`Reserva: ${selectedClass ? classes.find((c) => c.id === selectedClass)?.name : ""} - ${
+                date ? format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es }) : ""
+              } ${selectedTime || ""}`}
+              onSuccess={handlePaymentSuccess}
+              onCancel={handlePaymentCancel}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
+        <DialogContent className="bg-white border-gray-200 text-zinc-900">
+          <DialogHeader>
+            <DialogTitle className="text-[#4A102A]">¡Reserva Confirmada!</DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Tu reserva ha sido confirmada exitosamente
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500">Detalles de tu reserva:</p>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <p className="font-medium">
+                  Clase: {selectedClass ? classes.find((c) => c.id === selectedClass)?.name : ""}
+                </p>
+                <p className="font-medium">
+                  Fecha: {date ? format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es }) : ""}
+                </p>
+                <p className="font-medium">Horario: {selectedTime}</p>
+                <p className="font-medium">
+                  Instructor: {selectedClass ? classes.find((c) => c.id === selectedClass)?.instructor : ""}
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-500">
+              Se ha enviado un correo de confirmación con los detalles de tu reserva. Te esperamos en el estudio.
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              className="bg-brand-burgundy hover:bg-brand-burgundy/90 text-white"
+              onClick={() => setIsConfirmationOpen(false)}
+            >
+              Cerrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
