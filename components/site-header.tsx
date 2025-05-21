@@ -9,7 +9,6 @@ import { Menu, X, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const mainNav = [
-	{ title: "Inicio", href: "/" },
 	{ title: "Clases", href: "/clases" },
 	{ title: "Paquetes", href: "/paquetes" },
 	{ title: "Reservar", href: "/reservar" },
@@ -20,17 +19,24 @@ export function SiteHeader() {
 	const pathname = usePathname()
 	const [isMenuOpen, setIsMenuOpen] = useState(false)
 
+	// No renderizar el header en las páginas de admin
+	if (pathname?.startsWith("/admin")) {
+		return null
+	}
+
 	return (
-		<header className="absolute top-0 z-50 w-full">
-			<div className="container flex h-24 items-center justify-between">
+		<header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm shadow-sm">
+			<div className="container mx-auto flex h-20 items-center justify-between px-4">
 				<div className="flex items-center gap-6 md:gap-10">
-					<Link href="/" className="flex items-center" aria-label="Inicio">
-						<img
-							src="/innataBlack.png"
-							alt="Logo Innata"
-							className="h-20 w-auto max-w-[150px]"
-						/>
-					</Link>
+					<div className="flex items-center gap-6 md:gap-10">
+						<Link href="/" className="flex items-center" aria-label="Inicio">
+							<img
+								src="/innataBlack.png"
+								alt="Logo Innata"
+								className="h-20 w-auto max-w-[150px]"
+							/>
+						</Link>
+					</div>
 				</div>
 
 				<div className="flex items-center gap-4">
@@ -40,9 +46,9 @@ export function SiteHeader() {
 								key={item.href}
 								href={item.href}
 								className={cn(
-									"text-sm font-medium transition-colors hover:text-custom-teal",
+									"text-sm font-medium transition-colors hover:text-brand-burgundy",
 									pathname === item.href
-										? "text-custom-teal"
+										? "text-brand-burgundy"
 										: "text-zinc-800",
 								)}
 							>
@@ -51,13 +57,21 @@ export function SiteHeader() {
 						))}
 					</nav>
 
+					<div className="hidden md:flex items-center gap-3">
+						<Button asChild className="bg-brand-burgundy hover:bg-brand-burgundy/90 text-white rounded-full">
+							<Link href="/login" className="flex items-center gap-1">
+								Iniciar Sesión{" "}
+								<ChevronRight className="h-4 w-4" />
+							</Link>
+						</Button>
+					</div>
 
 					<Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
 						<SheetTrigger asChild>
 							<Button
 								variant="ghost"
 								size="icon"
-								className="text-zinc-800"
+								className="text-zinc-800 md:hidden"
 							>
 								{isMenuOpen ? (
 									<X className="h-6 w-6" />
@@ -69,7 +83,7 @@ export function SiteHeader() {
 						</SheetTrigger>
 						<SheetContent
 							side="right"
-							className="bg-custom-cream text-zinc-800 pt-10"
+							className="bg-white text-zinc-800 pt-10"
 						>
 							<nav className="flex flex-col gap-6">
 								{mainNav.map((item) => (
@@ -77,9 +91,9 @@ export function SiteHeader() {
 										key={item.href}
 										href={item.href}
 										className={cn(
-											"text-lg font-medium transition-colors hover:text-custom-teal",
+											"text-lg font-medium transition-colors hover:text-brand-burgundy",
 											pathname === item.href
-												? "text-custom-teal"
+												? "text-brand-burgundy"
 												: "text-zinc-800",
 										)}
 										onClick={() => setIsMenuOpen(false)}
@@ -87,15 +101,10 @@ export function SiteHeader() {
 										{item.title}
 									</Link>
 								))}
-								<Button
-									asChild
-									className="mt-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-full"
-								>
-									<Link
-										href="/reservar"
-										onClick={() => setIsMenuOpen(false)}
-									>
-										Reservar
+								<Button asChild className="mt-4 bg-brand-burgundy hover:bg-brand-burgundy/90 text-white rounded-full">
+									<Link href="/login" className="flex items-center gap-1" onClick={() => setIsMenuOpen(false)}>
+										Iniciar Sesión{" "}
+										<ChevronRight className="h-4 w-4" />
 									</Link>
 								</Button>
 							</nav>

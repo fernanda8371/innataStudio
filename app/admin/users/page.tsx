@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Download, UserPlus, Mail, Phone, Package, Calendar, Edit, Users } from "lucide-react"
+import { Search, Download, UserPlus, Mail, Phone, Package, Calendar, Edit } from "lucide-react"
 import AdminLayout from "@/components/admin-layout"
 
 // Datos de ejemplo
@@ -32,7 +32,7 @@ const users = [
     joinDate: "2023-01-15",
     lastVisit: "2023-04-20",
     status: "active",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/diverse-group.png",
   },
   {
     id: 2,
@@ -44,7 +44,7 @@ const users = [
     joinDate: "2022-11-05",
     lastVisit: "2023-04-22",
     status: "active",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/diverse-group.png",
   },
   {
     id: 3,
@@ -56,7 +56,7 @@ const users = [
     joinDate: "2023-04-10",
     lastVisit: "2023-04-10",
     status: "inactive",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/diverse-group.png",
   },
   {
     id: 4,
@@ -68,7 +68,7 @@ const users = [
     joinDate: "2023-02-20",
     lastVisit: "2023-04-15",
     status: "active",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/diverse-group.png",
   },
   {
     id: 5,
@@ -80,7 +80,7 @@ const users = [
     joinDate: "2023-03-30",
     lastVisit: "2023-03-30",
     status: "inactive",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/diverse-group.png",
   },
   {
     id: 6,
@@ -92,7 +92,7 @@ const users = [
     joinDate: "2022-12-10",
     lastVisit: "2023-04-18",
     status: "active",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/diverse-group.png",
   },
   {
     id: 7,
@@ -104,7 +104,7 @@ const users = [
     joinDate: "2023-01-05",
     lastVisit: "2023-04-21",
     status: "active",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/diverse-group.png",
   },
   {
     id: 8,
@@ -116,7 +116,7 @@ const users = [
     joinDate: "2023-03-15",
     lastVisit: "2023-04-19",
     status: "active",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/diverse-group.png",
   },
 ]
 
@@ -143,21 +143,21 @@ export default function UsersPage() {
       <div className="p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Gestión de Usuarios</h1>
-            <p className="text-gray-400">Administra todos los usuarios del sistema</p>
+            <h1 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h1>
+            <p className="text-gray-500">Administra todos los usuarios del sistema</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Dialog open={isNewUserOpen} onOpenChange={setIsNewUserOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-blue-500 hover:bg-blue-600">
+                <Button className="bg-[#4A102A] hover:bg-[#85193C]">
                   <UserPlus className="h-4 w-4 mr-2" /> Nuevo Usuario
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+              <DialogContent className="bg-white border-gray-200 text-gray-900">
                 <DialogHeader>
                   <DialogTitle>Crear Nuevo Usuario</DialogTitle>
-                  <DialogDescription className="text-gray-400">
+                  <DialogDescription className="text-gray-500">
                     Complete los detalles para crear un nuevo usuario
                   </DialogDescription>
                 </DialogHeader>
@@ -170,7 +170,7 @@ export default function UsersPage() {
                         type="text"
                         id="name"
                         placeholder="Nombre y apellido"
-                        className="bg-zinc-950 border-zinc-800 text-white"
+                        className="border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A]"
                       />
                     </div>
 
@@ -180,7 +180,7 @@ export default function UsersPage() {
                         type="email"
                         id="email"
                         placeholder="correo@ejemplo.com"
-                        className="bg-zinc-950 border-zinc-800 text-white"
+                        className="border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A]"
                       />
                     </div>
 
@@ -190,17 +190,17 @@ export default function UsersPage() {
                         type="tel"
                         id="phone"
                         placeholder="123-456-7890"
-                        className="bg-zinc-950 border-zinc-800 text-white"
+                        className="border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A]"
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="package">Paquete</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="border-gray-300 focus:ring-[#4A102A]">
                           <SelectValue placeholder="Seleccionar paquete" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent>
                           <SelectItem value="individual">PASE INDIVIDUAL</SelectItem>
                           <SelectItem value="5classes">PAQUETE 5 CLASES</SelectItem>
                           <SelectItem value="10classes">PAQUETE 10 CLASES</SelectItem>
@@ -215,7 +215,7 @@ export default function UsersPage() {
                         type="password"
                         id="password"
                         placeholder="********"
-                        className="bg-zinc-950 border-zinc-800 text-white"
+                        className="border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A]"
                       />
                     </div>
 
@@ -225,7 +225,7 @@ export default function UsersPage() {
                         type="password"
                         id="confirm-password"
                         placeholder="********"
-                        className="bg-zinc-950 border-zinc-800 text-white"
+                        className="border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A]"
                       />
                     </div>
                   </div>
@@ -236,7 +236,7 @@ export default function UsersPage() {
                       type="text"
                       id="notes"
                       placeholder="Notas adicionales"
-                      className="bg-zinc-950 border-zinc-800 text-white"
+                      className="border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A]"
                     />
                   </div>
                 </div>
@@ -245,47 +245,59 @@ export default function UsersPage() {
                   <Button
                     variant="outline"
                     onClick={() => setIsNewUserOpen(false)}
-                    className="border-zinc-700 text-white hover:bg-zinc-800"
+                    className="border-gray-300 text-gray-700 hover:bg-gray-100"
                   >
                     Cancelar
                   </Button>
-                  <Button className="bg-blue-500 hover:bg-blue-600" onClick={() => setIsNewUserOpen(false)}>
+                  <Button className="bg-[#4A102A] hover:bg-[#85193C]" onClick={() => setIsNewUserOpen(false)}>
                     Crear Usuario
                   </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
 
-            <Button variant="outline" className="border-zinc-700 text-white hover:bg-zinc-800">
+            <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-100">
               <Download className="h-4 w-4 mr-2" /> Exportar
             </Button>
           </div>
         </div>
 
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="all" onClick={() => setStatusFilter("all")}>
+          <TabsList className="grid w-full grid-cols-3 mb-8 bg-gray-100">
+            <TabsTrigger
+              value="all"
+              onClick={() => setStatusFilter("all")}
+              className="data-[state=active]:bg-white data-[state=active]:text-[#4A102A]"
+            >
               Todos los Usuarios
             </TabsTrigger>
-            <TabsTrigger value="active" onClick={() => setStatusFilter("active")}>
+            <TabsTrigger
+              value="active"
+              onClick={() => setStatusFilter("active")}
+              className="data-[state=active]:bg-white data-[state=active]:text-[#4A102A]"
+            >
               Usuarios Activos
             </TabsTrigger>
-            <TabsTrigger value="inactive" onClick={() => setStatusFilter("inactive")}>
+            <TabsTrigger
+              value="inactive"
+              onClick={() => setStatusFilter("inactive")}
+              className="data-[state=active]:bg-white data-[state=active]:text-[#4A102A]"
+            >
               Usuarios Inactivos
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all">
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-white border-gray-200">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <CardTitle className="text-lg">Usuarios</CardTitle>
+                  <CardTitle className="text-lg text-gray-900">Usuarios</CardTitle>
                   <div className="relative w-full sm:w-64">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                     <Input
                       type="search"
                       placeholder="Buscar usuarios..."
-                      className="pl-8 bg-zinc-950 border-zinc-800 text-white w-full"
+                      className="pl-8 border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A] w-full"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -296,20 +308,20 @@ export default function UsersPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-zinc-800">
-                        <th className="text-left p-4 font-medium text-gray-400">Usuario</th>
-                        <th className="text-left p-4 font-medium text-gray-400">Contacto</th>
-                        <th className="text-left p-4 font-medium text-gray-400">Paquete</th>
-                        <th className="text-left p-4 font-medium text-gray-400">Fecha de Registro</th>
-                        <th className="text-left p-4 font-medium text-gray-400">Última Visita</th>
-                        <th className="text-left p-4 font-medium text-gray-400">Estado</th>
-                        <th className="text-left p-4 font-medium text-gray-400">Acciones</th>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left p-4 font-medium text-gray-500">Usuario</th>
+                        <th className="text-left p-4 font-medium text-gray-500">Contacto</th>
+                        <th className="text-left p-4 font-medium text-gray-500">Paquete</th>
+                        <th className="text-left p-4 font-medium text-gray-500">Fecha de Registro</th>
+                        <th className="text-left p-4 font-medium text-gray-500">Última Visita</th>
+                        <th className="text-left p-4 font-medium text-gray-500">Estado</th>
+                        <th className="text-left p-4 font-medium text-gray-500">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredUsers.length > 0 ? (
                         filteredUsers.map((user) => (
-                          <tr key={user.id} className="border-b border-zinc-800">
+                          <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50">
                             <td className="p-4">
                               <div className="flex items-center">
                                 <div className="relative w-10 h-10 rounded-full overflow-hidden mr-3">
@@ -321,18 +333,18 @@ export default function UsersPage() {
                                   />
                                 </div>
                                 <div>
-                                  <div className="font-medium">{user.name}</div>
-                                  <div className="text-sm text-gray-400">ID: #{user.id}</div>
+                                  <div className="font-medium text-gray-900">{user.name}</div>
+                                  <div className="text-sm text-gray-500">ID: #{user.id}</div>
                                 </div>
                               </div>
                             </td>
                             <td className="p-4">
                               <div className="space-y-1">
-                                <div className="flex items-center text-sm">
+                                <div className="flex items-center text-sm text-gray-700">
                                   <Mail className="h-4 w-4 mr-2 text-gray-400" />
                                   <span>{user.email}</span>
                                 </div>
-                                <div className="flex items-center text-sm">
+                                <div className="flex items-center text-sm text-gray-700">
                                   <Phone className="h-4 w-4 mr-2 text-gray-400" />
                                   <span>{user.phone}</span>
                                 </div>
@@ -340,21 +352,21 @@ export default function UsersPage() {
                             </td>
                             <td className="p-4">
                               <div className="space-y-1">
-                                <div className="flex items-center">
-                                  <Package className="h-4 w-4 mr-2 text-blue-500" />
+                                <div className="flex items-center text-gray-700">
+                                  <Package className="h-4 w-4 mr-2 text-[#4A102A]" />
                                   <span>{user.package}</span>
                                 </div>
-                                <div className="text-sm text-gray-400">Clases restantes: {user.remainingClasses}</div>
+                                <div className="text-sm text-gray-500">Clases restantes: {user.remainingClasses}</div>
                               </div>
                             </td>
                             <td className="p-4">
-                              <div className="flex items-center">
+                              <div className="flex items-center text-gray-700">
                                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                                 <span>{user.joinDate}</span>
                               </div>
                             </td>
                             <td className="p-4">
-                              <div className="flex items-center">
+                              <div className="flex items-center text-gray-700">
                                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                                 <span>{user.lastVisit}</span>
                               </div>
@@ -362,9 +374,7 @@ export default function UsersPage() {
                             <td className="p-4">
                               <span
                                 className={`px-2 py-1 rounded-full text-xs ${
-                                  user.status === "active"
-                                    ? "bg-green-500/20 text-green-500"
-                                    : "bg-red-500/20 text-red-500"
+                                  user.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                                 }`}
                               >
                                 {user.status === "active" ? "Activo" : "Inactivo"}
@@ -375,7 +385,7 @@ export default function UsersPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-8 border-zinc-700 text-white hover:bg-zinc-800"
+                                  className="h-8 border-gray-300 text-gray-700 hover:bg-gray-100"
                                   onClick={() => setSelectedUser(user.id)}
                                 >
                                   Ver
@@ -383,7 +393,7 @@ export default function UsersPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-8 border-zinc-700 text-white hover:bg-zinc-800"
+                                  className="h-8 border-gray-300 text-gray-700 hover:bg-gray-100"
                                 >
                                   Editar
                                 </Button>
@@ -393,7 +403,7 @@ export default function UsersPage() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={7} className="p-4 text-center text-gray-400">
+                          <td colSpan={7} className="p-4 text-center text-gray-500">
                             No se encontraron usuarios con los filtros aplicados
                           </td>
                         </tr>
@@ -406,16 +416,16 @@ export default function UsersPage() {
           </TabsContent>
 
           <TabsContent value="active">
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-white border-gray-200">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <CardTitle className="text-lg">Usuarios Activos</CardTitle>
+                  <CardTitle className="text-lg text-gray-900">Usuarios Activos</CardTitle>
                   <div className="relative w-full sm:w-64">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                     <Input
                       type="search"
                       placeholder="Buscar usuarios..."
-                      className="pl-8 bg-zinc-950 border-zinc-800 text-white w-full"
+                      className="pl-8 border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A] w-full"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -427,16 +437,16 @@ export default function UsersPage() {
           </TabsContent>
 
           <TabsContent value="inactive">
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-white border-gray-200">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <CardTitle className="text-lg">Usuarios Inactivos</CardTitle>
+                  <CardTitle className="text-lg text-gray-900">Usuarios Inactivos</CardTitle>
                   <div className="relative w-full sm:w-64">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                     <Input
                       type="search"
                       placeholder="Buscar usuarios..."
-                      className="pl-8 bg-zinc-950 border-zinc-800 text-white w-full"
+                      className="pl-8 border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A] w-full"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -450,7 +460,7 @@ export default function UsersPage() {
 
         {selectedUser && (
           <Dialog open={selectedUser !== null} onOpenChange={() => setSelectedUser(null)}>
-            <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+            <DialogContent className="bg-white border-gray-200 text-gray-900">
               <DialogHeader>
                 <DialogTitle>Detalles del Usuario</DialogTitle>
               </DialogHeader>
@@ -465,10 +475,10 @@ export default function UsersPage() {
                       <div className="relative w-24 h-24 rounded-full overflow-hidden mb-4">
                         <Image src={user.avatar || "/placeholder.svg"} alt={user.name} fill className="object-cover" />
                       </div>
-                      <h3 className="text-xl font-bold">{user.name}</h3>
+                      <h3 className="text-xl font-bold text-gray-900">{user.name}</h3>
                       <span
                         className={`px-2 py-1 rounded-full text-xs mt-2 ${
-                          user.status === "active" ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"
+                          user.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                         }`}
                       >
                         {user.status === "active" ? "Activo" : "Inactivo"}
@@ -477,54 +487,54 @@ export default function UsersPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>ID de Usuario</Label>
-                        <div className="bg-zinc-950 p-2 rounded-md">#{user.id}</div>
+                        <Label className="text-gray-500">ID de Usuario</Label>
+                        <div className="bg-gray-50 p-2 rounded-md text-gray-900">#{user.id}</div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Correo Electrónico</Label>
-                        <div className="bg-zinc-950 p-2 rounded-md">{user.email}</div>
+                        <Label className="text-gray-500">Correo Electrónico</Label>
+                        <div className="bg-gray-50 p-2 rounded-md text-gray-900">{user.email}</div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Teléfono</Label>
-                        <div className="bg-zinc-950 p-2 rounded-md">{user.phone}</div>
+                        <Label className="text-gray-500">Teléfono</Label>
+                        <div className="bg-gray-50 p-2 rounded-md text-gray-900">{user.phone}</div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Paquete Actual</Label>
-                        <div className="bg-zinc-950 p-2 rounded-md">{user.package}</div>
+                        <Label className="text-gray-500">Paquete Actual</Label>
+                        <div className="bg-gray-50 p-2 rounded-md text-gray-900">{user.package}</div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Clases Restantes</Label>
-                        <div className="bg-zinc-950 p-2 rounded-md">{user.remainingClasses}</div>
+                        <Label className="text-gray-500">Clases Restantes</Label>
+                        <div className="bg-gray-50 p-2 rounded-md text-gray-900">{user.remainingClasses}</div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Fecha de Registro</Label>
-                        <div className="bg-zinc-950 p-2 rounded-md">{user.joinDate}</div>
+                        <Label className="text-gray-500">Fecha de Registro</Label>
+                        <div className="bg-gray-50 p-2 rounded-md text-gray-900">{user.joinDate}</div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Última Visita</Label>
-                        <div className="bg-zinc-950 p-2 rounded-md">{user.lastVisit}</div>
+                        <Label className="text-gray-500">Última Visita</Label>
+                        <div className="bg-gray-50 p-2 rounded-md text-gray-900">{user.lastVisit}</div>
                       </div>
                     </div>
 
                     <div className="flex justify-between mt-6">
                       <Button
                         variant="outline"
-                        className="border-zinc-700 text-white hover:bg-zinc-800"
+                        className="border-gray-300 text-gray-700 hover:bg-gray-100"
                         onClick={() => setSelectedUser(null)}
                       >
                         Cerrar
                       </Button>
                       <div className="flex gap-2">
-                        <Button variant="outline" className="border-zinc-700 text-white hover:bg-zinc-800">
+                        <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-100">
                           <Edit className="h-4 w-4 mr-2" /> Editar
                         </Button>
-                        <Button className="bg-blue-500 hover:bg-blue-600">Ver Reservaciones</Button>
+                        <Button className="bg-[#4A102A] hover:bg-[#85193C]">Ver Reservaciones</Button>
                       </div>
                     </div>
                   </div>

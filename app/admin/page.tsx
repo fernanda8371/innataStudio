@@ -68,7 +68,7 @@ export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-white text-zinc-900">
+    <div className="flex min-h-screen bg-white text--900">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div className="fixed inset-0 bg-black/20 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>
@@ -81,9 +81,15 @@ export default function AdminDashboard() {
         }`}
       >
         <div className="flex justify-between items-center mb-8">
-          <div className="font-extrabold text-2xl tracking-tight">
-            INNATA<span className="text-[#4A102A]">ADMIN</span>
-          </div>
+                    <div className="flex items-center gap-6 md:gap-10">
+					<Link href="/" className="flex items-center" aria-label="Inicio">
+						<img
+							src="/innataAdmin.svg"
+							alt="Logo Innata"
+							className="h-20 w-auto max-w-[150px]"
+						/>
+					</Link>
+				</div>
           <Button
             variant="ghost"
             size="icon"
@@ -145,7 +151,7 @@ export default function AdminDashboard() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-zinc-900"
+                className="md:hidden text-white-900"
                 onClick={() => setIsSidebarOpen(true)}
               >
                 <Menu className="h-6 w-6" />

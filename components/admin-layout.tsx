@@ -24,9 +24,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }`}
       >
         <div className="flex justify-between items-center mb-8">
-          <div className="font-extrabold text-2xl tracking-tight">
-            INNATA<span className="text-[#4A102A]">ADMIN</span>
-          </div>
+          <div className="flex items-center gap-6 md:gap-10">
+					<Link href="/" className="flex items-center" aria-label="Inicio">
+						<img
+							src="/innataAdmin.svg"
+							alt="Logo Innata"
+							className="h-20 w-auto max-w-[150px]"
+						/>
+					</Link>
+				</div>
           <Button
             variant="ghost"
             size="icon"
