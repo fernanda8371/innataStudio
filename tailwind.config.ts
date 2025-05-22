@@ -53,11 +53,11 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Nueva paleta de colores pastel
-        "brand-blue": "#D1E9F6",
-        "brand-cream": "#F6EACB",
-        "brand-pink": "#F1D3CE",
-        "brand-rose": "#EECAD5",
+        // Nueva paleta de colores naturales
+        "brand-gray": "#727D73",
+        "brand-sage": "#AAB99A",
+        "brand-mint": "#D0DDD0",
+        "brand-cream": "#F0F0D7",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -97,3 +97,4 @@ const config = {
 } satisfies Config
 
 export default config
+

@@ -18,7 +18,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Logo */}
           
-          <h1 className="text-3xl font-bold text-[#4A102A] mb-2">Bienvenido a Innata</h1>
+          <h1 className="text-3xl font-bold text-brand-gray mb-2">Bienvenido a Innata</h1>
           <p className="text-gray-500 mb-8">
             Innata es un espacio único para transformar tu cuerpo y mente a través del ciclismo indoor.
           </p>
@@ -68,18 +68,18 @@ export default function LoginPage() {
               <Input type="password" placeholder="Contraseña" className="h-12 border-gray-300" />
             </div>
             <div className="flex justify-between items-center text-sm">
-              <Link href="/reset-password" className="text-[#85193C] hover:underline">
+              <Link href="/reset-password" className="text-brand-gray hover:underline">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
-            <Button className="w-full h-12 bg-gradient-to-r from-[#4A102A] to-[#C5172E] hover:from-[#85193C] hover:to-[#C5172E] text-white">
+            <Button className="w-full h-12 bg-gradient-to-r from-brand-sage to-brand-gray hover:from-brand-mint hover:to-brand-sage text-white">
               Iniciar Sesión
             </Button>
           </div>
 
           <div className="mt-6 text-center text-sm text-black">
             ¿No tienes una cuenta?{" "}
-            <Link href="/registro" className="text-[#85193C] font-medium hover:underline">
+            <Link href="/registro" className="text-brand-gray font-medium hover:underline">
               Regístrate
             </Link>
           </div>

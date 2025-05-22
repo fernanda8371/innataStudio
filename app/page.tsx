@@ -11,7 +11,7 @@ export default function Home() {
           {/* Hero Banner */}
           <div className="relative w-full h-[600px] rounded-3xl overflow-hidden">
             {/* Background Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-pink/70 via-brand-rose/30 to-transparent z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-gray/70 via-brand-sage/30 to-transparent z-10"></div>
 
             {/* Background Image */}
             <Image
@@ -69,46 +69,71 @@ export default function Home() {
         {/* First row - Left to Right */}
         <div className="relative whitespace-nowrap overflow-hidden py-2">
           <div className="inline-block animate-scrollLeft">
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">HAZTE MIEMBRO</span>
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">HAZTE MIEMBRO</span>
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">HAZTE MIEMBRO</span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-gray via-brand-sage to-brand-mint bg-clip-text text-transparent px-2">
+              HAZTE MIEMBRO
+            </span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-gray via-brand-sage to-brand-mint bg-clip-text text-transparent px-2">
+              HAZTE MIEMBRO
+            </span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-gray via-brand-sage to-brand-mint bg-clip-text text-transparent px-2">
+              HAZTE MIEMBRO
+            </span>
           </div>
           <div className="inline-block animate-scrollLeft" aria-hidden="true">
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">HAZTE MIEMBRO</span>
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">HAZTE MIEMBRO</span>
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">HAZTE MIEMBRO</span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-gray via-brand-sage to-brand-mint bg-clip-text text-transparent px-2">
+              HAZTE MIEMBRO
+            </span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-gray via-brand-sage to-brand-mint bg-clip-text text-transparent px-2">
+              HAZTE MIEMBRO
+            </span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-gray via-brand-sage to-brand-mint bg-clip-text text-transparent px-2">
+              HAZTE MIEMBRO
+            </span>
           </div>
         </div>
 
         {/* Second row - Right to Left */}
         <div className="relative whitespace-nowrap overflow-hidden py-2 mt-[-12px]">
           <div className="inline-block animate-scrollRight">
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">ÚNETE A NUESTRA COMUNIDAD</span>
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">ÚNETE A NUESTRA COMUNIDAD</span>
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">ÚNETE A NUESTRA COMUNIDAD</span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-sage via-brand-mint to-brand-cream bg-clip-text text-transparent px-2">
+              ÚNETE A NUESTRA COMUNIDAD
+            </span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-sage via-brand-mint to-brand-cream bg-clip-text text-transparent px-2">
+              ÚNETE A NUESTRA COMUNIDAD
+            </span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-sage via-brand-mint to-brand-cream bg-clip-text text-transparent px-2">
+              ÚNETE A NUESTRA COMUNIDAD
+            </span>
           </div>
           <div className="inline-block animate-scrollRight" aria-hidden="true">
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">ÚNETE A NUESTRA COMUNIDAD</span>
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">ÚNETE A NUESTRA COMUNIDAD</span>
-            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-pink via-brand-blue to-brand-rose bg-clip-text text-transparent px-2">ÚNETE A NUESTRA COMUNIDAD</span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-sage via-brand-mint to-brand-cream bg-clip-text text-transparent px-2">
+              ÚNETE A NUESTRA COMUNIDAD
+            </span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-sage via-brand-mint to-brand-cream bg-clip-text text-transparent px-2">
+              ÚNETE A NUESTRA COMUNIDAD
+            </span>
+            <span className="text-7xl md:text-8xl font-semibold uppercase tracking-wide bg-gradient-to-r from-brand-sage via-brand-mint to-brand-cream bg-clip-text text-transparent px-2">
+              ÚNETE A NUESTRA COMUNIDAD
+            </span>
           </div>
         </div>
       </section>
 
-
-
       {/* CTA Section */}
-      <section className="py-20 bg-brand-blue/10">
+      <section className="py-20 bg-brand-mint/10">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-zinc-800">Vuélvete miembro</h2>
-            <p className="text-xl mb-8 text-zinc-700">Elige el plan que mejor se adapte a tu estilo de vida. Nuestra misión es hacer el ejercicio más cómodo y sostenible para ti</p>
+            <p className="text-xl mb-8 text-zinc-700">
+              Elige el plan que mejor se adapte a tu estilo de vida. Nuestra misión es hacer el ejercicio más cómodo y
+              sostenible para ti
+            </p>
             <Link
               href="/reservar"
-              className="bg-brand-pink hover:bg-brand-rose text-white rounded-full px-8 py-4 text-lg inline-flex items-center gap-2"
+              className="bg-brand-sage hover:bg-brand-gray text-white rounded-full px-8 py-4 text-lg inline-flex items-center gap-2"
             >
               <span>Comenzar</span>
-              <span className="bg-brand-rose rounded-full p-2">
+              <span className="bg-brand-gray rounded-full p-2">
                 <ArrowRight className="h-5 w-5 text-white" />
               </span>
             </Link>
