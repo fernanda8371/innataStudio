@@ -13,21 +13,17 @@ import {
   BarChart3,
   CalendarDays,
   CreditCard,
-  DollarSign,
   LayoutDashboard,
   Settings,
   Users,
   PlusCircle,
-  Search,
-  CheckCircle,
-  XCircle,
   Menu,
   X,
 } from "lucide-react"
 
 // Datos de ejemplo
 const reservations = [
-  { id: 1, user: "María Garc��a", class: "RHYTHM RIDE", date: "2023-04-22", time: "18:00", status: "confirmed" },
+  { id: 1, user: "María Garca", class: "RHYTHM RIDE", date: "2023-04-22", time: "18:00", status: "confirmed" },
   { id: 2, user: "Juan Pérez", class: "POWER CYCLE", date: "2023-04-22", time: "19:00", status: "confirmed" },
   { id: 3, user: "Ana Rodríguez", class: "HIIT CYCLE", date: "2023-04-23", time: "07:00", status: "pending" },
   { id: 4, user: "Carlos López", class: "ENDURANCE RIDE", date: "2023-04-23", time: "08:00", status: "confirmed" },
@@ -72,63 +68,74 @@ export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-white">
+    <div className="flex min-h-screen bg-white text--900">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>
+        <div className="fixed inset-0 bg-black/20 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-black border-r border-zinc-800 p-4 transition-transform duration-300 md:relative md:translate-x-0 ${
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-100 p-4 transition-transform duration-300 md:relative md:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex justify-between items-center mb-8">
-          <div className="font-extrabold text-2xl tracking-tight">
-            CYCLE<span className="text-blue-500">ADMIN</span>
-          </div>
-          <Button variant="ghost" size="icon" className="md:hidden text-white" onClick={() => setIsSidebarOpen(false)}>
+                    <div className="flex items-center gap-6 md:gap-10">
+					<Link href="/" className="flex items-center" aria-label="Inicio">
+						<img
+							src="/innataAdmin.svg"
+							alt="Logo Innata"
+							className="h-20 w-auto max-w-[150px]"
+						/>
+					</Link>
+				</div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden text-zinc-900"
+            onClick={() => setIsSidebarOpen(false)}
+          >
             <X className="h-6 w-6" />
           </Button>
         </div>
 
         <nav className="space-y-2">
-          <Link href="/admin" className="flex items-center gap-3 px-3 py-2 text-blue-500 bg-zinc-900 rounded-md">
+          <Link href="/admin" className="flex items-center gap-3 px-3 py-2 text-[#4A102A] bg-[#FCF259]/10 rounded-md">
             <LayoutDashboard className="h-5 w-5" />
             <span>Dashboard</span>
           </Link>
           <Link
             href="/admin/reservations"
-            className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-zinc-900 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <CalendarDays className="h-5 w-5" />
             <span>Reservaciones</span>
           </Link>
           <Link
             href="/admin/payments"
-            className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-zinc-900 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <CreditCard className="h-5 w-5" />
             <span>Pagos</span>
           </Link>
           <Link
             href="/admin/classes"
-            className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-zinc-900 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <BarChart3 className="h-5 w-5" />
             <span>Clases</span>
           </Link>
           <Link
             href="/admin/users"
-            className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-zinc-900 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <Users className="h-5 w-5" />
             <span>Usuarios</span>
           </Link>
           <Link
             href="/admin/settings"
-            className="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-zinc-900 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
           >
             <Settings className="h-5 w-5" />
             <span>Configuración</span>
@@ -138,13 +145,13 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <header className="sticky top-0 z-10 bg-zinc-950 border-b border-zinc-800 p-4">
+        <header className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-white"
+                className="md:hidden text-white-900"
                 onClick={() => setIsSidebarOpen(true)}
               >
                 <Menu className="h-6 w-6" />
@@ -166,12 +173,12 @@ export default function AdminDashboard() {
             <TabsContent value="reservations">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Reservaciones Recientes</h2>
-                <Button className="bg-blue-500 hover:bg-blue-600">
+                <Button className="bg-[#85193C] hover:bg-[#4A102A]">
                   <PlusCircle className="h-4 w-4 mr-2" /> Nueva Reserva
                 </Button>
               </div>
 
-              <Card className="bg-zinc-900 border-zinc-800">
+              <Card className="bg-white border-gray-100">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -241,12 +248,12 @@ export default function AdminDashboard() {
             <TabsContent value="payments">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Pagos Recientes</h2>
-                <Button className="bg-blue-500 hover:bg-blue-600">
+                <Button className="bg-[#85193C] hover:bg-[#4A102A]">
                   <PlusCircle className="h-4 w-4 mr-2" /> Registrar Pago
                 </Button>
               </div>
 
-              <Card className="bg-zinc-900 border-zinc-800">
+              <Card className="bg-white border-gray-100">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -309,7 +316,7 @@ export default function AdminDashboard() {
 
             <TabsContent value="calendar">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <Card className="bg-zinc-900 border-zinc-800 md:col-span-1">
+                <Card className="bg-white border-gray-100 md:col-span-1">
                   <CardHeader>
                     <CardTitle>Calendario</CardTitle>
                     <CardDescription className="text-gray-400">
@@ -318,22 +325,22 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent className="overflow-hidden flex justify-center px-0">
                     <div className="w-full max-w-[280px]">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      className="bg-zinc-900 text-white"
-                      classNames={{
-                        day_selected: "bg-blue-500 text-white",
-                        day_today: "bg-zinc-800 text-white",
-                        day: "text-white hover:bg-zinc-800",
-                      }}
-                    />
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        className="bg-white"
+                        classNames={{
+                          day_selected: "bg-[#85193C] text-white",
+                          day_today: "bg-[#FCF259]/20 text-zinc-900",
+                          day: "text-zinc-900 hover:bg-[#FCF259]/10",
+                        }}
+                      />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-zinc-900 border-zinc-800 md:col-span-2">
+                <Card className="bg-white border-gray-100 md:col-span-2">
                   <CardHeader>
                     <CardTitle>Agregar Clase</CardTitle>
                     <CardDescription className="text-gray-400">
@@ -346,7 +353,7 @@ export default function AdminDashboard() {
                         <div className="space-y-2">
                           <Label htmlFor="class-type">Tipo de Clase</Label>
                           <Select>
-                            <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                            <SelectTrigger className="bg-white border-gray-200">
                               <SelectValue placeholder="Seleccionar clase" />
                             </SelectTrigger>
                             <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
@@ -361,7 +368,7 @@ export default function AdminDashboard() {
                         <div className="space-y-2">
                           <Label htmlFor="instructor">Instructor</Label>
                           <Select>
-                            <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                            <SelectTrigger className="bg-white border-gray-200">
                               <SelectValue placeholder="Seleccionar instructor" />
                             </SelectTrigger>
                             <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
@@ -378,7 +385,7 @@ export default function AdminDashboard() {
                           <Input
                             type="date"
                             id="date"
-                            className="bg-zinc-950 border-zinc-800 text-white"
+                            className="bg-white border-gray-200"
                             value={date ? date.toISOString().split("T")[0] : ""}
                             readOnly
                           />
@@ -387,7 +394,7 @@ export default function AdminDashboard() {
                         <div className="space-y-2">
                           <Label htmlFor="time">Hora</Label>
                           <Select>
-                            <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                            <SelectTrigger className="bg-white border-gray-200">
                               <SelectValue placeholder="Seleccionar hora" />
                             </SelectTrigger>
                             <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
@@ -401,19 +408,16 @@ export default function AdminDashboard() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="capacity">Capacidad</Label>
-                          <Input
-                            type="number"
-                            id="capacity"
-                            placeholder="20"
-                            className="bg-zinc-950 border-zinc-800 text-white"
-                          />
+                          <Label htmlFor="capacity">
+                            Capacidad <span className="text-xs text-muted-foreground">(Límite: 10)</span>
+                          </Label>
+                          <Input type="number" id="capacity" value="10" readOnly className="bg-white border-gray-200" />
                         </div>
 
                         <div className="space-y-2">
                           <Label htmlFor="duration">Duración (minutos)</Label>
                           <Select>
-                            <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                            <SelectTrigger className="bg-white border-gray-200">
                               <SelectValue placeholder="Seleccionar duración" />
                             </SelectTrigger>
                             <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
@@ -426,7 +430,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <Button className="w-full bg-blue-500 hover:bg-blue-600">Programar Clase</Button>
+                      <Button className="w-full bg-[#85193C] hover:bg-[#4A102A]">Programar Clase</Button>
                     </form>
                   </CardContent>
                 </Card>

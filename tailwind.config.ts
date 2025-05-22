@@ -53,24 +53,16 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Custom color palette
-        "custom-pink": "#FFC5C5",
-        "custom-cream": "#FFEBD8",
-        "custom-green": "#C7DCA7",
-        "custom-teal": "#89B9AD",
-        zinc: {
-          800: "#27272a",
-          900: "#18181b",
-          950: "#09090b",
-        },
+        // Nueva paleta de colores naturales
+        "brand-gray": "#727D73",
+        "brand-sage": "#AAB99A",
+        "brand-mint": "#D0DDD0",
+        "brand-cream": "#F0F0D7",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-      fontFamily: {
-        sans: ["var(--font-manrope)"],
       },
       keyframes: {
         "accordion-down": {
@@ -81,10 +73,23 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        scrollLeft: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        scrollRight: {
+          "0%": { transform: "translateX(-50%)" },
+          "100%": { transform: "translateX(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        scrollLeft: "scrollLeft 30s linear infinite",
+        scrollRight: "scrollRight 30s linear infinite",
+      },
+      fontFamily: {
+        sans: ['Montserrat', 'Arial', 'Helvetica', 'sans-serif'],
       },
     },
   },
@@ -92,3 +97,4 @@ const config = {
 } satisfies Config
 
 export default config
+

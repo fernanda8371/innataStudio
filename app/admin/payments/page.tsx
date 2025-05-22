@@ -146,7 +146,7 @@ export default function PaymentsPage() {
                   <PlusCircle className="h-4 w-4 mr-2" /> Registrar Pago
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+              <DialogContent className="bg-white-900 border-white-800 text-white">
                 <DialogHeader>
                   <DialogTitle>Registrar Nuevo Pago</DialogTitle>
                   <DialogDescription className="text-gray-400">
@@ -159,10 +159,10 @@ export default function PaymentsPage() {
                     <div className="space-y-2">
                       <Label htmlFor="user">Cliente</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white-950 border-white-800 text-white">
                           <SelectValue placeholder="Seleccionar cliente" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white-950 border-white-800 text-white">
                           <SelectItem value="maria">María García</SelectItem>
                           <SelectItem value="juan">Juan Pérez</SelectItem>
                           <SelectItem value="ana">Ana Rodríguez</SelectItem>
@@ -175,10 +175,10 @@ export default function PaymentsPage() {
                     <div className="space-y-2">
                       <Label htmlFor="package">Paquete</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white-950 border-white-800 text-white">
                           <SelectValue placeholder="Seleccionar paquete" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white-950 border-white-800 text-white">
                           <SelectItem value="individual">PASE INDIVIDUAL - $25</SelectItem>
                           <SelectItem value="5classes">PAQUETE 5 CLASES - $110</SelectItem>
                           <SelectItem value="10classes">PAQUETE 10 CLASES - $200</SelectItem>
@@ -193,7 +193,7 @@ export default function PaymentsPage() {
                         type="text"
                         id="amount"
                         placeholder="$0.00"
-                        className="bg-zinc-950 border-zinc-800 text-white"
+                        className="bg-white-950 border-white-800 text-white"
                       />
                     </div>
 
@@ -202,7 +202,7 @@ export default function PaymentsPage() {
                       <Input
                         type="date"
                         id="date"
-                        className="bg-zinc-950 border-zinc-800 text-white"
+                        className="bg-white-950 border-white-800 text-white"
                         value={date ? format(date, "yyyy-MM-dd") : ""}
                       />
                     </div>
@@ -210,10 +210,10 @@ export default function PaymentsPage() {
                     <div className="space-y-2">
                       <Label htmlFor="method">Método de Pago</Label>
                       <Select>
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white-950 border-white-800 text-white">
                           <SelectValue placeholder="Seleccionar método" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white-950 border-white-800 text-white">
                           <SelectItem value="credit">Tarjeta de crédito</SelectItem>
                           <SelectItem value="debit">Tarjeta de débito</SelectItem>
                           <SelectItem value="transfer">Transferencia bancaria</SelectItem>
@@ -225,10 +225,10 @@ export default function PaymentsPage() {
                     <div className="space-y-2">
                       <Label htmlFor="status">Estado</Label>
                       <Select defaultValue="completed">
-                        <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectTrigger className="bg-white-950 border-white-800 text-white">
                           <SelectValue placeholder="Seleccionar estado" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                        <SelectContent className="bg-white-950 border-white-800 text-white">
                           <SelectItem value="completed">Completado</SelectItem>
                           <SelectItem value="pending">Pendiente</SelectItem>
                         </SelectContent>
@@ -242,7 +242,7 @@ export default function PaymentsPage() {
                       type="text"
                       id="notes"
                       placeholder="Notas adicionales"
-                      className="bg-zinc-950 border-zinc-800 text-white"
+                      className="bg-white-950 border-white-800 text-white"
                     />
                   </div>
                 </div>
@@ -251,7 +251,7 @@ export default function PaymentsPage() {
                   <Button
                     variant="outline"
                     onClick={() => setIsNewPaymentOpen(false)}
-                    className="border-zinc-700 text-white hover:bg-zinc-800"
+                    className="border-white-700 text-white hover:bg-white-800"
                   >
                     Cancelar
                   </Button>
@@ -262,13 +262,13 @@ export default function PaymentsPage() {
               </DialogContent>
             </Dialog>
 
-            <Button variant="outline" className="border-zinc-700 text-white hover:bg-zinc-800">
+            <Button variant="outline" className="border-white-700 text-white hover:bg-white-800">
               <Download className="h-4 w-4 mr-2" /> Exportar
             </Button>
           </div>
         </div>
 
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-white-900 border-white-800">
           <CardHeader>
             <CardTitle className="text-lg">Historial de Pagos</CardTitle>
           </CardHeader>
@@ -279,17 +279,17 @@ export default function PaymentsPage() {
                 <Input
                   type="search"
                   placeholder="Buscar por cliente, paquete o factura..."
-                  className="pl-8 bg-zinc-950 border-zinc-800 text-white w-full"
+                  className="pl-8 bg-white-950 border-white-800 text-white w-full"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="bg-zinc-950 border-zinc-800 text-white w-full sm:w-[180px]">
+                <SelectTrigger className="bg-white-950 border-white-800 text-white w-full sm:w-[180px]">
                   <SelectValue placeholder="Filtrar por estado" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-950 border-zinc-800 text-white">
+                <SelectContent className="bg-white-950 border-white-800 text-white">
                   <SelectItem value="all">Todos los estados</SelectItem>
                   <SelectItem value="completed">Completados</SelectItem>
                   <SelectItem value="pending">Pendientes</SelectItem>
@@ -300,7 +300,7 @@ export default function PaymentsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-zinc-800">
+                  <tr className="border-b border-white-800">
                     <th className="text-left p-4 font-medium text-gray-400">ID</th>
                     <th className="text-left p-4 font-medium text-gray-400">Cliente</th>
                     <th className="text-left p-4 font-medium text-gray-400">Paquete</th>
@@ -315,7 +315,7 @@ export default function PaymentsPage() {
                 <tbody>
                   {filteredPayments.length > 0 ? (
                     filteredPayments.map((payment) => (
-                      <tr key={payment.id} className="border-b border-zinc-800">
+                      <tr key={payment.id} className="border-b border-white-800">
                         <td className="p-4">#{payment.id}</td>
                         <td className="p-4">
                           <div>
@@ -344,14 +344,14 @@ export default function PaymentsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-8 border-zinc-700 text-white hover:bg-zinc-800"
+                              className="h-8 border-white-700 text-white hover:bg-white-800"
                             >
                               Ver
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-8 border-zinc-700 text-white hover:bg-zinc-800"
+                              className="h-8 border-white-700 text-white hover:bg-white-800"
                             >
                               Factura
                             </Button>

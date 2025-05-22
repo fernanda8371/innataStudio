@@ -6,9 +6,13 @@ export function SiteFooter() {
     <footer className="bg-custom-cream text-zinc-800 py-12">
       <div className="container px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="space-y-4">
-          <Link href="/" className="font-extrabold text-2xl tracking-tight">
-            INNATA <span className="text-custom-teal">STUDIO</span>
-          </Link>
+          					<Link href="/" className="flex items-center" aria-label="Inicio">
+						<img
+							src="/innataBlack.png"
+							alt="Logo Innata"
+							className="h-20 w-auto max-w-[150px]"
+						/>
+					</Link>
           <p className="text-zinc-600 max-w-xs">
             Transformando vidas a través del fitness. Únete a nuestra comunidad y eleva tu experiencia.
           </p>
@@ -62,9 +66,10 @@ export function SiteFooter() {
         <div>
           <h4 className="font-bold mb-4">HORARIOS</h4>
           <ul className="space-y-2 text-zinc-600">
-            <li>Lunes - Viernes: 6:00 - 21:00</li>
-            <li>Sábado: 8:00 - 18:00</li>
-            <li>Domingo: 9:00 - 14:00</li>
+            <li>Lunes a Viernes:</li>
+            <li className="ml-2">(7:00-7:45) (8:15-9:00) (6:00-6:45) (8:00-8:45)</li>
+            <li>Sábado:</li>
+            <li className="ml-2">(8:00-8:45) (9:15-10:00)</li>
           </ul>
         </div>
 
@@ -73,8 +78,8 @@ export function SiteFooter() {
           <address className="not-italic text-zinc-600 space-y-2">
             <p>Av. Principal #123</p>
             <p>Ciudad, CP 12345</p>
-            <p>Tel: (123) 456-7890</p>
-            <p>Email: info@innatastudio.com</p>
+            <p>Tel: 775-357-1894</p>
+            <p>Email: innata@indoor@gmail.com</p>
           </address>
         </div>
       </div>

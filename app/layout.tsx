@@ -1,17 +1,17 @@
 import type React from "react"
 import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
+import { FooterWrapper } from "@/components/footer-wrapper"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Manrope } from "next/font/google"
+import { Montserrat } from "next/font/google"
 import "./globals.css"
 
-const manrope = Manrope({
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-manrope",
+  variable: "--font-montserrat",
 })
 
 export const metadata = {
-  title: "CycleStudio - Indoor Cycling Premium",
+  title: "Innata Studio - El primer indoor cycling studio en Apan ",
   description:
     "Estudio de indoor cycling con clases de alta intensidad, instructores certificados y la mejor experiencia fitness.",
     generator: 'v0.dev'
@@ -23,13 +23,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es" className="dark">
-      <body className={`${manrope.variable} font-sans antialiased min-h-screen bg-black text-white`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+    <html lang="es" className="light">
+      <body className={`${montserrat.variable} font-sans antialiased min-h-screen bg-white text-white`}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader />
             <main className="flex-1">{children}</main>
-            <SiteFooter />
+            <FooterWrapper />
           </div>
         </ThemeProvider>
       </body>
