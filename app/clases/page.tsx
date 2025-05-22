@@ -220,8 +220,8 @@ export default function ClassesPage() {
                   variant={filter === "potencia" ? "default" : "outline"}
                   className={`${
                     filter === "potencia"
-                      ? "bg-brand-burgundy hover:bg-brand-burgundy/90 text-white"
-                      : "border-brand-burgundy text-brand-burgundy hover:bg-gray-50"
+                      ? "bg-brand-pink hover:bg-brand-rose text-white"
+                      : "border-brand-pink text-brand-pink hover:bg-brand-cream"
                   } rounded-full`}
                   onClick={() => setFilter("potencia")}
                 >
@@ -231,8 +231,8 @@ export default function ClassesPage() {
                   variant={filter === "resistencia" ? "default" : "outline"}
                   className={`${
                     filter === "resistencia"
-                      ? "bg-brand-burgundy hover:bg-brand-burgundy/90 text-white"
-                      : "border-brand-burgundy text-brand-burgundy hover:bg-gray-50"
+                      ? "bg-brand-blue hover:bg-brand-pink text-white"
+                      : "border-brand-blue text-brand-blue hover:bg-brand-cream"
                   } rounded-full`}
                   onClick={() => setFilter("resistencia")}
                 >
@@ -242,8 +242,8 @@ export default function ClassesPage() {
                   variant={filter === "hiit" ? "default" : "outline"}
                   className={`${
                     filter === "hiit"
-                      ? "bg-brand-burgundy hover:bg-brand-burgundy/90 text-white"
-                      : "border-brand-burgundy text-brand-burgundy hover:bg-gray-50"
+                      ? "bg-brand-rose hover:bg-brand-pink text-white"
+                      : "border-brand-rose text-brand-rose hover:bg-brand-cream"
                   } rounded-full`}
                   onClick={() => setFilter("hiit")}
                 >

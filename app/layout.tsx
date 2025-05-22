@@ -2,12 +2,12 @@ import type React from "react"
 import { SiteHeader } from "@/components/site-header"
 import { FooterWrapper } from "@/components/footer-wrapper"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Manrope } from "next/font/google"
+import { Montserrat } from "next/font/google"
 import "./globals.css"
 
-const manrope = Manrope({
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-manrope",
+  variable: "--font-montserrat",
 })
 
 export const metadata = {
@@ -24,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className="light">
-      <body className={`${manrope.variable} font-sans antialiased min-h-screen bg-white text-white`}>
+      <body className={`${montserrat.variable} font-sans antialiased min-h-screen bg-white text-white`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader />

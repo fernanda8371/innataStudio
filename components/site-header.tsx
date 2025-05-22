@@ -46,9 +46,9 @@ export function SiteHeader() {
 								key={item.href}
 								href={item.href}
 								className={cn(
-									"text-sm font-medium transition-colors hover:text-brand-burgundy",
+									"text-sm font-medium transition-colors hover:text-brand-pink",
 									pathname === item.href
-										? "text-brand-burgundy"
+										? "text-brand-pink"
 										: "text-zinc-800",
 								)}
 							>
@@ -58,9 +58,8 @@ export function SiteHeader() {
 					</nav>
 
 					<div className="hidden md:flex items-center gap-3">
-						<Button asChild className="bg-brand-burgundy hover:bg-brand-burgundy/90 text-white rounded-full">
-							<Link href="/login" className="flex items-center gap-1">
-								Iniciar Sesión{" "}
+					<Button asChild className="bg-brand-pink hover:bg-brand-rose text-white rounded-full">
+					<Link href="/login" className="text-sm font-medium text-zinc-800 hover:text-zinc-800 transition-colors">								Iniciar Sesión{" "}
 								<ChevronRight className="h-4 w-4" />
 							</Link>
 						</Button>
@@ -91,9 +90,9 @@ export function SiteHeader() {
 										key={item.href}
 										href={item.href}
 										className={cn(
-											"text-lg font-medium transition-colors hover:text-brand-burgundy",
+											"text-lg font-medium transition-colors hover:text-brand-pink",
 											pathname === item.href
-												? "text-brand-burgundy"
+												? "text-brand-pink"
 												: "text-zinc-800",
 										)}
 										onClick={() => setIsMenuOpen(false)}

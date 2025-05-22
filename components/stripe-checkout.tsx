@@ -11,10 +11,17 @@ import { stripePromise } from "@/lib/stripe"
 import { Loader2 } from "lucide-react"
 
 interface CheckoutFormProps {
-  amount: number
+  amount: number // Monto NETO deseado (lo que quieres recibir)
   description: string
   onSuccess: (paymentId: string) => void
   onCancel: () => void
+}
+
+// 👉 Función para calcular el monto bruto que se debe cobrar para recibir el neto deseado
+function calculateStripeGrossAmount(netAmount: number): number {
+  const fixedFee = 3.00
+  const percentage = 0.036
+  return parseFloat(((netAmount + fixedFee) / (1 - percentage)).toFixed(2))
 }
 
 function CheckoutForm({ amount, description, onSuccess, onCancel }: CheckoutFormProps) {
@@ -24,6 +31,9 @@ function CheckoutForm({ amount, description, onSuccess, onCancel }: CheckoutForm
   const [processing, setProcessing] = useState(false)
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
+
+  const grossAmount = calculateStripeGrossAmount(amount) // Monto a cobrar incluyendo comisiones
+  const totalAmount = parseFloat((grossAmount ).toFixed(2)) // Total final a cobrar
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,14 +54,13 @@ function CheckoutForm({ amount, description, onSuccess, onCancel }: CheckoutForm
     }
 
     try {
-      // Create a payment intent on your server
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount,
+          amount: Math.round(totalAmount * 100), // En centavos
           description,
           email,
           name,
@@ -64,7 +73,6 @@ function CheckoutForm({ amount, description, onSuccess, onCancel }: CheckoutForm
         throw new Error(data.error)
       }
 
-      // Confirm the payment with Stripe.js
       const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
         data.clientSecret,
         {
@@ -140,15 +148,12 @@ function CheckoutForm({ amount, description, onSuccess, onCancel }: CheckoutForm
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Subtotal</span>
-          <span>${amount.toFixed(2)}</span>
+          <span>${grossAmount.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Impuestos</span>
-          <span>${(amount).toFixed(2)}</span>
-        </div>
+
         <div className="flex justify-between font-medium">
           <span>Total</span>
-          <span>${(amount).toFixed(2)}</span>
+          <span>${totalAmount.toFixed(2)}</span>
         </div>
       </div>
       <div className="flex flex-col space-y-2">
@@ -158,7 +163,7 @@ function CheckoutForm({ amount, description, onSuccess, onCancel }: CheckoutForm
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...
             </>
           ) : (
-            `Pagar $${(amount).toFixed(2)}`
+            `Pagar $${totalAmount.toFixed(2)}`
           )}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel} disabled={processing}>
