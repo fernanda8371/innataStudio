@@ -25,28 +25,7 @@ export default function LoginPage() {
 
           {/* Botones de redes sociales */}
           <div className="space-y-4 mb-6">
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2 h-12 border-gray-300 text-black">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M18.1711 8.36788H17.4998V8.33329H9.99984V11.6666H14.7094C14.0223 13.607 12.1761 15 9.99984 15C7.23859 15 4.99984 12.7612 4.99984 10C4.99984 7.23871 7.23859 5 9.99984 5C11.2744 5 12.4344 5.48683 13.3177 6.28537L15.6744 3.92871C14.1887 2.56204 12.1932 1.66663 9.99984 1.66663C5.39775 1.66663 1.6665 5.39788 1.6665 10C1.6665 14.6021 5.39775 18.3333 9.99984 18.3333C14.6019 18.3333 18.3332 14.6021 18.3332 10C18.3332 9.44121 18.2757 8.89583 18.1711 8.36788Z"
-                  fill="#FFC107"
-                />
-                <path
-                  d="M2.62744 6.12121L5.36536 8.12913C6.10619 6.29496 7.90036 5 9.99994 5C11.2745 5 12.4345 5.48683 13.3178 6.28537L15.6745 3.92871C14.1887 2.56204 12.1932 1.66663 9.99994 1.66663C6.79911 1.66663 4.02327 3.47371 2.62744 6.12121Z"
-                  fill="#FF3D00"
-                />
-                <path
-                  d="M10 18.3334C12.1525 18.3334 14.1084 17.4755 15.5871 16.1542L13.008 13.9875C12.1432 14.6452 11.0865 15.0009 10 15.0001C7.83255 15.0001 5.99213 13.618 5.2988 11.6875L2.5813 13.7813C3.96047 16.4926 6.76163 18.3334 10 18.3334Z"
-                  fill="#4CAF50"
-                />
-                <path
-                  d="M18.1711 8.36796H17.5V8.33337H10V11.6667H14.7096C14.3809 12.5902 13.7889 13.3972 13.0067 13.9879L13.0079 13.9871L15.5871 16.1538C15.4046 16.3171 18.3333 14.1667 18.3333 10.0001C18.3333 9.44129 18.2758 8.89591 18.1711 8.36796Z"
-                  fill="#1976D2"
-                />
-              </svg>
-              Continuar con Google
-            </Button>
-            
+
           </div>
 
           {/* Separador */}
@@ -55,7 +34,7 @@ export default function LoginPage() {
               <Separator className="w-full" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">O continúa con email</span>
+              <span className="bg-white px-2 text-gray-500">Continúar con email</span>
             </div>
           </div>
 
