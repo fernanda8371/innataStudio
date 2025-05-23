@@ -180,13 +180,13 @@ export default function ClassesPage() {
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100">
               <TabsTrigger
                 value="classes"
-                className="text-lg data-[state=active]:bg-brand-burgundy data-[state=active]:text-white"
+                className="text-lg data-[state=active]:bg-brand-mint data-[state=active]:text-white"
               >
                 Clases
               </TabsTrigger>
               <TabsTrigger
                 value="schedule"
-                className="text-lg data-[state=active]:bg-brand-burgundy data-[state=active]:text-white"
+                className="text-lg data-[state=active]:bg-brand-mint data-[state=active]:text-white"
               >
                 Horario Semanal
               </TabsTrigger>
@@ -198,8 +198,8 @@ export default function ClassesPage() {
                   variant={filter === "all" ? "default" : "outline"}
                   className={`${
                     filter === "all"
-                      ? "bg-brand-burgundy hover:bg-brand-burgundy/90 text-white"
-                      : "border-brand-burgundy text-brand-burgundy hover:bg-gray-50"
+                      ? "bg-brand-sage hover:bg-brand-sage/90 text-white"
+                      : "border-brand-burgundy text-brand-sage hover:bg-gray-50"
                   } rounded-full`}
                   onClick={() => setFilter("all")}
                 >
@@ -209,8 +209,8 @@ export default function ClassesPage() {
                   variant={filter === "ritmo" ? "default" : "outline"}
                   className={`${
                     filter === "ritmo"
-                      ? "bg-brand-burgundy hover:bg-brand-burgundy/90 text-white"
-                      : "border-brand-burgundy text-brand-burgundy hover:bg-gray-50"
+                      ? "bg-brand-sage hover:bg-brand-sage/90 text-white"
+                      : "border-brand-sage text-brand-sage hover:bg-gray-50"
                   } rounded-full`}
                   onClick={() => setFilter("ritmo")}
                 >

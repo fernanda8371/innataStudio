@@ -93,13 +93,13 @@ export default function BookingPage() {
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100">
               <TabsTrigger
                 value="calendar"
-                className="text-lg data-[state=active]:bg-brand-burgundy data-[state=active]:text-white"
+                className="text-lg data-[state=active]:bg-brand-sage data-[state=active]:text-white"
               >
                 Calendario
               </TabsTrigger>
               <TabsTrigger
                 value="classes"
-                className="text-lg data-[state=active]:bg-brand-burgundy data-[state=active]:text-white"
+                className="text-lg data-[state=active]:bg-brand-sage data-[state=active]:text-white"
               >
                 Clases
               </TabsTrigger>
@@ -110,8 +110,8 @@ export default function BookingPage() {
                 <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
                   <CardContent className="p-0">
                     <div className="p-6 border-b border-gray-100 flex items-center">
-                      <CalendarIcon className="mr-2 h-5 w-5 text-brand-burgundy" />
-                      <h3 className="text-xl font-bold text-brand-burgundy-dark">Selecciona Fecha</h3>
+                      <CalendarIcon className="mr-2 h-5 w-5 text-brand-mint" />
+                      <h3 className="text-xl font-bold text-brand-mint-dark">Selecciona Fecha</h3>
                     </div>
                     <div className="flex justify-center items-center py-6">
                       <div className="w-full max-w-[280px]">
@@ -122,7 +122,7 @@ export default function BookingPage() {
                           locale={es}
                           className="bg-white text-zinc-900 w-full"
                           classNames={{
-                            day_selected: "bg-brand-burgundy text-white",
+                            day_selected: "bg-brand-sage text-white",
                             day_today: "bg-gray-100 text-zinc-900",
                             day: "text-zinc-900 hover:bg-gray-100",
                           }}
@@ -135,8 +135,8 @@ export default function BookingPage() {
                 <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
                   <CardContent className="p-0">
                     <div className="p-6 border-b border-gray-100 flex items-center">
-                      <Clock className="mr-2 h-5 w-5 text-brand-burgundy" />
-                      <h3 className="text-xl font-bold text-brand-burgundy-dark">Selecciona Clase</h3>
+                      <Clock className="mr-2 h-5 w-5 text-brand-sage" />
+                      <h3 className="text-xl font-bold text-brand-sage-dark">Selecciona Clase</h3>
                     </div>
                     <div className="p-4 space-y-2">
                       {classes.map((classItem) => (
@@ -145,8 +145,8 @@ export default function BookingPage() {
                           variant={selectedClass === classItem.id ? "default" : "outline"}
                           className={`w-full justify-between rounded-full ${
                             selectedClass === classItem.id
-                              ? "bg-brand-burgundy hover:bg-brand-burgundy/90 text-white"
-                              : "border-brand-burgundy text-brand-burgundy hover:bg-gray-50"
+                              ? "bg-brand-sage hover:bg-brand-sage/90 text-white"
+                              : "border-brand-burgundy text-brand-sage hover:bg-gray-50"
                           }`}
                           onClick={() => handleClassSelect(classItem.id)}
                         >
@@ -161,7 +161,7 @@ export default function BookingPage() {
                 <Card className="bg-white border-gray-100 rounded-3xl shadow-sm">
                   <CardContent className="p-0">
                     <div className="p-6 border-b border-gray-100 flex items-center">
-                      <Clock className="mr-2 h-5 w-5 text-brand-burgundy" />
+                      <Clock className="mr-2 h-5 w-5 text-brand-sage" />
                       <h3 className="text-xl font-bold text-brand-burgundy-dark">Selecciona Horario</h3>
                     </div>
                     <div className="p-4 grid grid-cols-3 gap-2">
@@ -171,8 +171,8 @@ export default function BookingPage() {
                           variant={selectedTime === time ? "default" : "outline"}
                           className={`rounded-full ${
                             selectedTime === time
-                              ? "bg-brand-burgundy hover:bg-brand-burgundy/90 text-white"
-                              : "border-brand-burgundy text-brand-burgundy hover:bg-gray-50"
+                              ? "bg-brand-sage hover:bg-brand-sage/90 text-white"
+                              : "border-brand-sage text-brand-sage hover:bg-gray-50"
                           }`}
                           onClick={() => setSelectedTime(time)}
                         >
@@ -186,7 +186,7 @@ export default function BookingPage() {
 
               <Card className="bg-brand-yellow/10 border-none rounded-3xl shadow-sm">
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-bold mb-4 text-brand-burgundy-dark">Resumen de Reserva</h3>
+                  <h3 className="text-xl font-bold mb-4 text-brand-mint-dark">Resumen de Reserva</h3>
 
                   <div className="space-y-4">
                     <div className="flex justify-between items-center pb-2 border-b border-brand-red/10">
@@ -219,7 +219,7 @@ export default function BookingPage() {
                   </div>
 
                   <Button
-                    className="w-full mt-6 bg-brand-burgundy hover:bg-brand-burgundy/90 font-bold text-lg py-6 rounded-full text-white"
+                    className="w-full mt-6 bg-brand-mint hover:bg-brand-mint/90 font-bold text-lg py-6 rounded-full text-white"
                     disabled={!date || !selectedClass || !selectedTime}
                     onClick={handleConfirmBooking}
                   >
