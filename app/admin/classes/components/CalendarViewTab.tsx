@@ -1,27 +1,29 @@
-"use client";
-
-import * as React from "react";
-import { useState, useEffect } from "react"; 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar"; 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"; 
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { CalendarIcon, Edit, Trash2, Users, Clock } from "lucide-react";
-import { ScheduledClass, ClassType, Instructor, convertUtcToLocalDateForDisplay, formatTime } from "../typesAndConstants"; 
-
-// Helper functions are now imported
+"use client"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Calendar } from "@/components/ui/calendar"
+import { Badge } from "@/components/ui/badge"
+import { format, isSameDay } from "date-fns"
+import { es } from "date-fns/locale"
+import { CalendarIcon, Edit, Trash2, Users, Clock, List, Grid3X3 } from "lucide-react"
+import {
+  type ScheduledClass,
+  type ClassType,
+  type Instructor,
+  convertUtcToLocalDateForDisplay,
+  formatTime,
+} from "../typesAndConstants"
 
 interface CalendarViewTabProps {
-  scheduledClasses: ScheduledClass[];
-  date: Date | undefined; 
-  setDate: (date: Date | undefined) => void;
-  setSelectedWeek: (date: Date) => void; 
-  onOpenEditScheduleDialog: (schedule: ScheduledClass) => void;
-  onDeleteSchedule: (scheduleId: number) => Promise<void>;
-  classTypes: ClassType[];
-  instructors: Instructor[];
+  scheduledClasses: ScheduledClass[]
+  date: Date | undefined
+  setDate: (date: Date | undefined) => void
+  setSelectedWeek: (date: Date) => void
+  onOpenEditScheduleDialog: (schedule: ScheduledClass) => void
+  onDeleteSchedule: (scheduleId: number) => Promise<void>
+  classTypes: ClassType[]
+  instructors: Instructor[]
 }
 
 export default function CalendarViewTab({
@@ -31,112 +33,358 @@ export default function CalendarViewTab({
   setSelectedWeek,
   onOpenEditScheduleDialog,
   onDeleteSchedule,
-  classTypes, 
-  instructors 
+  classTypes,
+  instructors,
 }: CalendarViewTabProps) {
-  
-  const filteredClasses = scheduledClasses.filter(cls => {
-    if (!date) return true; 
-    const classDateForDisplay = convertUtcToLocalDateForDisplay(cls.date);
-    return format(classDateForDisplay, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
-  });
-  
-  const noClassesForSelectedDate = date && filteredClasses.length === 0;
-  const noClassesAtAll = scheduledClasses.length === 0 && !date; // This condition might need refinement based on whether scheduledClasses is for "all time" or "current week"
+  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar")
+
+  // Obtener clases para una fecha específica
+  const getClassesForDate = (targetDate: Date) => {
+    return scheduledClasses
+      .filter((cls) => {
+        const classDate = convertUtcToLocalDateForDisplay(cls.date)
+        return isSameDay(classDate, targetDate)
+      })
+      .sort((a, b) => formatTime(a.time).localeCompare(formatTime(b.time)))
+  }
+
+  // Obtener fechas que tienen clases programadas
+  const getDatesWithClasses = () => {
+    return scheduledClasses.map((cls) => convertUtcToLocalDateForDisplay(cls.date))
+  }
+
+  const selectedDate = date || new Date()
+  const classesForSelectedDate = date ? getClassesForDate(selectedDate) : []
+  const datesWithClasses = getDatesWithClasses()
+
+  const filteredClasses = date ? classesForSelectedDate : scheduledClasses
+  const noClassesForSelectedDate = date && classesForSelectedDate.length === 0
+  const noClassesAtAll = scheduledClasses.length === 0
 
   return (
-    <Card className="bg-white border-gray-200">
-      <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <CardTitle className="text-lg text-[#4A102A]">Vista de Calendario</CardTitle>
-          <CardDescription>Gestiona tus clases en formato de calendario</CardDescription>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          {date ? (
-            <div className="text-center px-4 py-2 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Fecha seleccionada:</p>
-              <p className="font-medium">{format(date, 'PPP', { locale: es })}</p>
+    <div className="space-y-6">
+      {/* Header con controles mejorados */}
+      <Card className="bg-white border-gray-200">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle className="text-[#4A102A] text-xl">Vista de Calendario</CardTitle>
+              <CardDescription className="text-gray-600">
+                {date
+                  ? `Clases para el ${format(selectedDate, "EEEE, d 'de' MMMM", { locale: es })}`
+                  : `${scheduledClasses.length} clases programadas en total`}
+              </CardDescription>
             </div>
-          ) : (
-            <div className="text-center px-4 py-2 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Vista:</p>
-              <p className="font-medium">Todas las clases de la semana</p>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Toggle de vista */}
+              <div className="flex items-center border border-gray-200 rounded-lg p-1">
+                <Button
+                  variant={viewMode === "calendar" ? "default" : "ghost"}
+                  onClick={() => setViewMode("calendar")}
+                  className={`h-8 px-3 ${viewMode === "calendar" ? "bg-[#4A102A] text-white" : ""}`}
+                  size="sm"
+                >
+                  <Grid3X3 className="h-4 w-4 mr-1" />
+                  Calendario
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  onClick={() => setViewMode("list")}
+                  className={`h-8 px-3 ${viewMode === "list" ? "bg-[#4A102A] text-white" : ""}`}
+                  size="sm"
+                >
+                  <List className="h-4 w-4 mr-1" />
+                  Lista
+                </Button>
+              </div>
+
+              {/* Botones de navegación rápida */}
+              <div className="flex gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-200 text-zinc-900 hover:bg-gray-100"
+                  onClick={() => {
+                    const today = new Date()
+                    setDate(today)
+                    setSelectedWeek(today)
+                  }}
+                >
+                  Hoy
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-200 text-zinc-900 hover:bg-gray-100"
+                  onClick={() => {
+                    const tomorrow = new Date()
+                    tomorrow.setDate(tomorrow.getDate() + 1)
+                    setDate(tomorrow)
+                    setSelectedWeek(tomorrow)
+                  }}
+                >
+                  Mañana
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-200 text-zinc-900 hover:bg-gray-100"
+                  onClick={() => setDate(undefined)}
+                >
+                  Ver todas
+                </Button>
+              </div>
             </div>
-          )}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="border-gray-200 text-zinc-900 hover:bg-gray-100 flex justify-between items-center">
-                <span>Cambiar fecha</span>
-                <CalendarIcon className="h-4 w-4 ml-2" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-white border-gray-200 p-0 overflow-hidden sm:max-w-[425px]">
-              <DialogHeader className="px-6 pt-6"><DialogTitle className="text-[#4A102A]">Seleccionar Fecha</DialogTitle><DialogDescription>Elige una fecha para ver las clases programadas.</DialogDescription></DialogHeader>
-              <div className="p-6 pt-2 flex justify-center">
+          </div>
+        </CardHeader>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Panel principal - Calendario o Lista */}
+        <div className="lg:col-span-2">
+          {viewMode === "calendar" ? (
+            <Card className="bg-white border-gray-200">
+              <CardContent className="p-6">
                 <Calendar
                   mode="single"
                   selected={date}
-                  onSelect={(newDate) => { if (newDate) { setDate(newDate); setSelectedWeek(newDate); } }}
+                  onSelect={(newDate) => {
+                    if (newDate) {
+                      setDate(newDate)
+                      setSelectedWeek(newDate)
+                    }
+                  }}
                   locale={es}
-                  className="bg-white text-zinc-900"
-                  classNames={{ day_selected: "bg-brand-mint text-white", day_today: "bg-gray-100 text-zinc-900", day: "text-zinc-900 hover:bg-gray-100" }}
+                  className="rounded-md border-0 mx-auto"
+                  modifiers={{
+                    hasClasses: datesWithClasses,
+                  }}
+                  modifiersStyles={{
+                    hasClasses: {
+                      backgroundColor: "#4A102A",
+                      color: "white",
+                      fontWeight: "bold",
+                    },
+                  }}
                 />
-              </div>
-              <DialogFooter className="px-6 pb-6">
-                <Button variant="outline" className="border-gray-200 text-zinc-900 hover:bg-gray-100" onClick={() => {
-                    const closeButton = document.querySelector('[data-state="open"][role="dialog"] [data-state="open"]');
-                    if (closeButton instanceof HTMLElement) { closeButton.click(); }
-                  }}>Aceptar</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" className="border-gray-200 text-zinc-900 hover:bg-gray-100" onClick={() => { const today = new Date(); setDate(today); setSelectedWeek(today); }}>Hoy</Button>
-            <Button variant="outline" className="border-gray-200 text-zinc-900 hover:bg-gray-100" onClick={() => { const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); setDate(tomorrow); setSelectedWeek(tomorrow); }}>Mañana</Button>
-            <Button variant="outline" className="border-gray-200 text-zinc-900 hover:bg-gray-100" onClick={() => { setDate(undefined); }}>Ver todas (semana)</Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {noClassesAtAll && !date ? ( // Show this if no date is selected and scheduledClasses for the week is empty
-            <p className="text-center text-gray-500 py-8">No hay clases programadas para esta semana</p>
-          ) : noClassesForSelectedDate ? (
-             <p className="text-center text-gray-500 py-8">No hay clases programadas para el día {format(date!, "d 'de' MMMM", { locale: es })}</p>
-          ) : (
-            filteredClasses.map((cls) => (
-              <div key={cls.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold text-[#4A102A]">{cls.classType.name}</h3>
-                    <p className="text-gray-600">{cls.instructor.user.firstName} {cls.instructor.user.lastName}</p>
-                    <p className="text-sm text-gray-500">
-                      {format(convertUtcToLocalDateForDisplay(cls.date), "EEEE, d 'de' MMMM", { locale: es })} - {formatTime(cls.time)}
-                    </p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                      <span className="flex items-center gap-1"><Users className="h-4 w-4" />{cls.maxCapacity - cls.availableSpots}/{cls.maxCapacity} inscritos</span>
-                      <span className="flex items-center gap-1"><Clock className="h-4 w-4" />{cls.classType.duration} minutos</span>
-                    </div>
-                    {cls.waitlist.length > 0 && (<p className="text-sm text-orange-600 mt-1">Lista de espera: {cls.waitlist.length} personas</p>)}
+                <div className="mt-6 flex items-center justify-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#4A102A] rounded"></div>
+                    <span>Días con clases</span>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="border-gray-200 text-zinc-900 hover:bg-gray-100" onClick={() => onOpenEditScheduleDialog(cls)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" className="border-gray-200 text-zinc-900 hover:bg-gray-100" onClick={() => onDeleteSchedule(cls.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gray-200 rounded"></div>
+                    <span>Días sin clases</span>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-          {/* This logic might need adjustment: if !date (all week view) and filteredClasses (which is all scheduledClasses) is empty, it should show no classes for the week */}
-          {!date && scheduledClasses.length === 0 && (
-             <p className="text-center text-gray-500 py-8">No hay clases programadas para esta semana</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-white border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-[#4A102A]">
+                  {date ? "Clases del día seleccionado" : "Todas las clases"}
+                </CardTitle>
+                <CardDescription>
+                  {filteredClasses.length} clase(s) {date ? "programada(s) para este día" : "en total"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {filteredClasses.length === 0 ? (
+                    <div className="text-center py-8">
+                      <CalendarIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500">
+                        {date ? "No hay clases programadas para este día" : "No hay clases programadas"}
+                      </p>
+                    </div>
+                  ) : (
+                    filteredClasses
+                      .sort((a, b) => {
+                        if (!date) {
+                          const dateA = convertUtcToLocalDateForDisplay(a.date)
+                          const dateB = convertUtcToLocalDateForDisplay(b.date)
+                          if (dateA.getTime() !== dateB.getTime()) {
+                            return dateA.getTime() - dateB.getTime()
+                          }
+                        }
+                        return formatTime(a.time).localeCompare(formatTime(b.time))
+                      })
+                      .map((cls) => (
+                        <Card
+                          key={cls.id}
+                          className="border border-gray-200 hover:shadow-sm transition-shadow cursor-pointer"
+                          onClick={() => {
+                            if (!date) {
+                              setDate(convertUtcToLocalDateForDisplay(cls.date))
+                            }
+                          }}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-semibold text-[#4A102A]">{cls.classType.name}</h4>
+                                  <Badge variant="outline" className="text-xs">
+                                    {formatTime(cls.time)}
+                                  </Badge>
+                                  {cls.availableSpots === 0 && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      Lleno
+                                    </Badge>
+                                  )}
+                                </div>
+                                {!date && (
+                                  <p className="text-sm text-gray-600 mb-1">
+                                    {format(convertUtcToLocalDateForDisplay(cls.date), "EEEE, d 'de' MMMM", {
+                                      locale: es,
+                                    })}
+                                  </p>
+                                )}
+                                <p className="text-sm text-gray-600 mb-2">
+                                  {cls.instructor.user.firstName} {cls.instructor.user.lastName}
+                                </p>
+                                <div className="flex items-center gap-4 text-xs text-gray-500">
+                                  <span className="flex items-center gap-1">
+                                    <Users className="h-3 w-3" />
+                                    {cls.maxCapacity - cls.availableSpots}/{cls.maxCapacity}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {cls.classType.duration} min
+                                  </span>
+                                  {cls.waitlist.length > 0 && (
+                                    <span className="text-orange-600">Lista: {cls.waitlist.length}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-1 ml-4">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-gray-400 hover:text-[#4A102A]"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onOpenEditScheduleDialog(cls)
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-gray-400 hover:text-[#C5172E]"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onDeleteSchedule(cls.id)
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
-      </CardContent>
-    </Card>
-  );
+
+        {/* Panel lateral - Detalles y resumen */}
+        <div className="space-y-4">
+          {/* Detalles del día seleccionado */}
+          {date && (
+            <Card className="bg-white border-gray-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-[#4A102A] text-lg">{format(selectedDate, "EEEE", { locale: es })}</CardTitle>
+                <CardDescription>{format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: es })}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {classesForSelectedDate.length === 0 ? (
+                  <div className="text-center py-6">
+                    <CalendarIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-gray-500 text-sm">No hay clases este día</p>
+                  </div>
+                ) : (
+                  classesForSelectedDate.map((cls) => (
+                    <Card key={cls.id} className="border border-gray-100 bg-gray-50">
+                      <CardContent className="p-3">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-[#4A102A] text-sm">{cls.classType.name}</h4>
+                            <Badge variant="outline" className="text-xs">
+                              {formatTime(cls.time)}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {cls.instructor.user.firstName} {cls.instructor.user.lastName}
+                          </p>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="flex items-center gap-1 text-gray-500">
+                              <Users className="h-3 w-3" />
+                              {cls.maxCapacity - cls.availableSpots}/{cls.maxCapacity}
+                            </span>
+                            <span className="flex items-center gap-1 text-gray-500">
+                              <Clock className="h-3 w-3" />
+                              {cls.classType.duration}min
+                            </span>
+                          </div>
+                          {cls.waitlist.length > 0 && (
+                            <Badge variant="outline" className="text-xs w-full justify-center">
+                              Lista de espera: {cls.waitlist.length}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Resumen estadístico */}
+          <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+            <CardContent className="p-4">
+              <h4 className="font-medium text-[#4A102A] mb-3">Resumen</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total clases:</span>
+                  <span className="font-medium">{scheduledClasses.length}</span>
+                </div>
+                {date && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Clases hoy:</span>
+                    <span className="font-medium">{classesForSelectedDate.length}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tipos únicos:</span>
+                  <span className="font-medium">{new Set(scheduledClasses.map((cls) => cls.classType.id)).size}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Instructores:</span>
+                  <span className="font-medium">{new Set(scheduledClasses.map((cls) => cls.instructor.id)).size}</span>
+                </div>
+                <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                  <span className="text-gray-600">Capacidad total:</span>
+                  <span className="font-medium">{scheduledClasses.reduce((sum, cls) => sum + cls.maxCapacity, 0)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Plazas ocupadas:</span>
+                  <span className="font-medium">
+                    {scheduledClasses.reduce((sum, cls) => sum + (cls.maxCapacity - cls.availableSpots), 0)}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
 }
