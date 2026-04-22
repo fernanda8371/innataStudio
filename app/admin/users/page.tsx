@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,11 +15,38 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Download, UserPlus, Mail, Phone, Package, Calendar, Edit, Trash2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Search, Download, UserPlus, Mail, Phone, Calendar, Edit, Trash2, MoreVertical, AlertTriangle, List } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/use-toast"
+import UserReservationsModal from "../../../components/admin/UserReservationsModal"
 
 // Interfaces
+interface ApiUser {
+  user_id: number
+  firstName: string
+  lastName: string
+  email: string
+  phone: string | null
+  role: string
+  createdAt: string
+  status: string
+}
+
 interface User {
   id: number
   name: string
@@ -43,17 +69,23 @@ interface UserDetail {
   lastVisitDate: string | null
   status: string
   role: string
-  balance: {
-    totalClassesPurchased: number
-    classesUsed: number
-    classesAvailable: number
-  }
   activePackages: Array<{
     id: number
     name: string
     classesRemaining: number
     expiryDate: string
     paymentStatus: string
+  }>
+  purchaseHistory: Array<{
+    id: number
+    name: string
+    purchaseDate: string
+    expiryDate: string
+    totalClasses: number
+    classesRemaining: number
+    paymentStatus: string
+    isActive: boolean
+    amount: number
   }>
   recentReservations: Array<{
     id: number
@@ -74,18 +106,26 @@ export default function UsersPage() {
   const [isNewUserOpen, setIsNewUserOpen] = useState(false)
   const [isEditUserOpen, setIsEditUserOpen] = useState(false)
   const [isViewUserOpen, setIsViewUserOpen] = useState(false)
+  const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isFiltering, setIsFiltering] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isReservationsModalOpen, setIsReservationsModalOpen] = useState(false)
+  const [selectedUserForReservations, setSelectedUserForReservations] = useState<User | null>(null)
+  const [showAllPurchases, setShowAllPurchases] = useState(false)
 
-  // Form states
+  // Form states simplificados
   const [newUserForm, setNewUserForm] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    phone: "",
-    package: "",
-    password: "",
-    confirmPassword: "",
-    notes: ""
+    phone: ""
+  })
+
+  const [emailValidation, setEmailValidation] = useState({
+    isValid: true,
+    message: ""
   })
 
   const [editUserForm, setEditUserForm] = useState({
@@ -97,22 +137,36 @@ export default function UsersPage() {
     password: ""
   })
 
-  // Cargar usuarios
-  const loadUsers = async () => {
-    setIsLoading(true)
+  // Cargar usuarios - optimizado para filtros
+  const loadUsers = async (isInitialLoad = false) => {
+    if (isInitialLoad) {
+      setIsLoading(true)
+    } else {
+      setIsFiltering(true)
+    }
+    
     try {
-      const params = new URLSearchParams()
-      if (searchTerm) params.append("search", searchTerm)
-      if (statusFilter !== "all") params.append("status", statusFilter)
-
-      const response = await fetch(`/api/admin/users?${params.toString()}`)
+      const response = await fetch(`/api/admin/users`)
       
       if (!response.ok) {
         throw new Error("Error al cargar usuarios")
       }
 
-      const data = await response.json()
-      setUsers(data)
+      // Transformar los datos del API al formato que espera la UI
+      const apiUsers: ApiUser[] = await response.json()
+      const transformedUsers: User[] = apiUsers.map(apiUser => ({
+        id: apiUser.user_id,
+        name: `${apiUser.firstName} ${apiUser.lastName}`,
+        email: apiUser.email,
+        phone: apiUser.phone || "No registrado",
+        package: "Paquete por defecto", // Valor por defecto hasta tener la info real
+        remainingClasses: 0, // Valor por defecto hasta tener la info real
+        joinDate: new Date(apiUser.createdAt).toLocaleDateString(),
+        lastVisit: "No disponible", // Valor por defecto hasta tener la info real
+        status: apiUser.status
+      }))
+      
+      setUsers(transformedUsers)
     } catch (error) {
       console.error("Error loading users:", error)
       toast({
@@ -122,6 +176,7 @@ export default function UsersPage() {
       })
     } finally {
       setIsLoading(false)
+      setIsFiltering(false)
     }
   }
 
@@ -135,15 +190,34 @@ export default function UsersPage() {
       }
 
       const data = await response.json()
-      setSelectedUser(data)
+      
+      // Asegurarse de que los datos estén en el formato esperado
+      const userDetail: UserDetail = {
+        id: data.user_id || userId,
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        joinDate: data.createdAt ? new Date(data.createdAt).toLocaleDateString() : '',
+        lastVisitDate: data.lastVisit ? new Date(data.lastVisit).toLocaleDateString() : null,
+        status: data.status || 'inactive',
+        role: data.role || 'client',
+        // Si no hay paquetes activos, usar un array vacío
+        activePackages: data.activePackages || [],
+        purchaseHistory: data.purchaseHistory || [],
+        // Si no hay reservaciones recientes, usar un array vacío
+        recentReservations: data.recentReservations || []
+      }
+      
+      setSelectedUser(userDetail)
       
       // Poblar form de edición
       setEditUserForm({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phone || "",
-        status: data.status,
+        firstName: userDetail.firstName,
+        lastName: userDetail.lastName,
+        email: userDetail.email,
+        phone: userDetail.phone || "",
+        status: userDetail.status,
         password: ""
       })
     } catch (error) {
@@ -156,21 +230,23 @@ export default function UsersPage() {
     }
   }
 
-  // Crear nuevo usuario
+  // Crear nuevo usuario - simplificado
   const handleCreateUser = async () => {
-    if (!newUserForm.name || !newUserForm.email || !newUserForm.password) {
+    if (!newUserForm.firstName || !newUserForm.lastName || !newUserForm.email) {
       toast({
         title: "Error",
-        description: "Nombre, email y contraseña son obligatorios",
+        description: "Nombre, apellido y email son obligatorios",
         variant: "destructive",
       })
       return
     }
 
-    if (newUserForm.password !== newUserForm.confirmPassword) {
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(newUserForm.email)) {
       toast({
         title: "Error",
-        description: "Las contraseñas no coinciden",
+        description: "El formato del email no es válido",
         variant: "destructive",
       })
       return
@@ -178,37 +254,55 @@ export default function UsersPage() {
 
     setIsSubmitting(true)
     try {
+      // Preparar los datos para enviar al API
+      const userData = {
+        firstName: newUserForm.firstName.trim(),
+        lastName: newUserForm.lastName.trim(),
+        email: newUserForm.email.toLowerCase().trim(),
+        phone: newUserForm.phone?.trim() || null
+      }
+
       const response = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUserForm)
+        body: JSON.stringify(userData)
       })
 
+      const responseData = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Error al crear usuario")
+        // Manejar específicamente el error de email duplicado
+        if (response.status === 409) {
+          toast({
+            title: "Email ya existe",
+            description: "Ya existe un usuario registrado con este correo electrónico. Por favor, usa un email diferente.",
+            variant: "destructive",
+          })
+        } else {
+          throw new Error(responseData.error || "Error al crear usuario")
+        }
+        return
       }
 
       toast({
         title: "Usuario creado",
-        description: "El usuario ha sido creado exitosamente",
+        description: "Se ha enviado un email al usuario para que establezca su contraseña. Una vez que la configure, podrá iniciar sesión normalmente.",
+        duration: 5000,
       })
 
       setIsNewUserOpen(false)
       setNewUserForm({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
-        phone: "",
-        package: "",
-        password: "",
-        confirmPassword: "",
-        notes: ""
+        phone: ""
       })
+      setEmailValidation({ isValid: true, message: "" })
       await loadUsers()
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Error interno del servidor",
         variant: "destructive",
       })
     } finally {
@@ -253,14 +347,13 @@ export default function UsersPage() {
   }
 
   // Eliminar usuario
-  const handleDeleteUser = async (userId: number) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este usuario?")) {
-      return
-    }
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return
 
+    setIsSubmitting(true)
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: "DELETE"
+      const response = await fetch(`/api/admin/users/${userToDelete.id}`, {
+        method: "DELETE",
       })
 
       if (!response.ok) {
@@ -273,6 +366,8 @@ export default function UsersPage() {
         description: "El usuario ha sido eliminado correctamente",
       })
 
+      setIsDeleteUserOpen(false)
+      setUserToDelete(null)
       await loadUsers()
     } catch (error: any) {
       toast({
@@ -280,23 +375,40 @@ export default function UsersPage() {
         description: error.message,
         variant: "destructive",
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  // Effects
+  // Validar email en tiempo real
+  const validateEmail = (email: string) => {
+    if (!email) {
+      setEmailValidation({ isValid: true, message: "" })
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setEmailValidation({ 
+        isValid: false, 
+        message: "Formato de email inválido" 
+      })
+    } else {
+      setEmailValidation({ isValid: true, message: "" })
+    }
+  }
+
+  // Effects optimizados
   useEffect(() => {
-    loadUsers()
+    loadUsers(true) // Carga inicial
   }, [])
 
+  // Effects optimizados
   useEffect(() => {
-    const delayedSearch = setTimeout(() => {
-      loadUsers()
-    }, 500)
+    loadUsers(true) // Carga inicial
+  }, [])
 
-    return () => clearTimeout(delayedSearch)
-  }, [searchTerm, statusFilter])
-
-  // Filtrar usuarios localmente (backup del filtro del servidor)
+  // Filtrado local optimizado - sin delay
   const filteredUsers = users.filter((user) => {
     const matchesSearch = searchTerm === "" || 
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -308,115 +420,156 @@ export default function UsersPage() {
     return matchesSearch && matchesStatus
   })
 
+  // Componente para mostrar detalles del usuario
+  const UserDetailsMenu = ({ user }: { user: User }) => {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-80 p-4">
+          <div className="space-y-3">
+            <div className="border-b pb-2">
+              <h4 className="font-semibold text-sm text-gray-900">Detalles del Usuario</h4>
+              <p className="text-xs text-gray-500">ID: {user.id}</p>
+            </div>
+
+            {/* Información básica */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs">
+                <Mail className="h-3 w-3 text-gray-400" />
+                <span className="text-gray-600">Email:</span>
+                <span className="font-medium">{user.email}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 text-xs">
+                <Phone className="h-3 w-3 text-gray-400" />
+                <span className="text-gray-600">Teléfono:</span>
+                <span className="font-medium">{user.phone}</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <Calendar className="h-3 w-3 text-gray-400" />
+                <span className="text-gray-600">Registro:</span>
+                <span className="font-medium">{user.joinDate}</span>
+              </div>
+            </div>
+
+            {/* Estado del usuario */}
+            <div className="space-y-2 p-3 bg-gray-50 rounded-md">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-gray-800">Estado</span>
+                <Badge variant={user.status === "active" ? "default" : "secondary"}>
+                  {user.status === "active" ? "Activo" : "Inactivo"}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="p-6 bg-white-50 min-h-screen">
+        <div className="text-center text-zinc-900">Cargando...</div>
+      </div>
+    )
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white-50 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h1>
-          <p className="text-gray-500">Administra todos los usuarios del sistema</p>
+          <h1 className="text-2xl font-bold text-[#4A102A]">Gestión de Usuarios</h1>
+          <p className="text-gray-600">Administra todos los usuarios del sistema</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex gap-4">
+
           <Dialog open={isNewUserOpen} onOpenChange={setIsNewUserOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#4A102A] hover:bg-[#85193C]">
-                <UserPlus className="h-4 w-4 mr-2" /> Nuevo Usuario
+              <Button
+                className="bg-[#4A102A] hover:bg-[#85193C] text-white"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Nuevo Usuario
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-white border-gray-200 text-gray-900 max-w-2xl">
+            <DialogContent className="bg-white border-gray-200 text-zinc-900 max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Crear Nuevo Usuario</DialogTitle>
-                <DialogDescription className="text-gray-500">
-                  Complete los detalles para crear un nuevo usuario
+                <DialogDescription>
+                  Complete los datos básicos. El usuario recibirá un email para establecer su contraseña.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nombre Completo</Label>
+                    <Label htmlFor="firstName">Nombre *</Label>
                     <Input
-                      id="name"
-                      value={newUserForm.name}
-                      onChange={(e) => setNewUserForm(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Nombre y apellido"
-                      className="border-gray-300"
+                      id="firstName"
+                      value={newUserForm.firstName}
+                      onChange={(e) => setNewUserForm(prev => ({ ...prev, firstName: e.target.value }))}
+                      placeholder="Nombre"
+                      className="bg-white border-gray-200"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">Correo Electrónico</Label>
+                    <Label htmlFor="lastName">Apellido *</Label>
+                    <Input
+                      id="lastName"
+                      value={newUserForm.lastName}
+                      onChange={(e) => setNewUserForm(prev => ({ ...prev, lastName: e.target.value }))}
+                      placeholder="Apellido"
+                      className="bg-white border-gray-200"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Correo Electrónico *</Label>
                     <Input
                       type="email"
                       id="email"
                       value={newUserForm.email}
-                      onChange={(e) => setNewUserForm(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e) => {
+                        const email = e.target.value
+                        setNewUserForm(prev => ({ ...prev, email }))
+                        validateEmail(email)
+                      }}
                       placeholder="correo@ejemplo.com"
-                      className="border-gray-300"
+                      className={`bg-white border-gray-200 ${
+                        !emailValidation.isValid ? 'border-red-300 focus:border-red-500' : ''
+                      }`}
                     />
+                    {!emailValidation.isValid && (
+                      <p className="text-sm text-red-600">{emailValidation.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Teléfono</Label>
+                    <Label htmlFor="phone">Teléfono (opcional)</Label>
                     <Input
                       type="tel"
                       id="phone"
                       value={newUserForm.phone}
                       onChange={(e) => setNewUserForm(prev => ({ ...prev, phone: e.target.value }))}
                       placeholder="123-456-7890"
-                      className="border-gray-300"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="package">Paquete Inicial</Label>
-                    <Select value={newUserForm.package} onValueChange={(value) => setNewUserForm(prev => ({ ...prev, package: value }))}>
-                      <SelectTrigger className="border-gray-300">
-                        <SelectValue placeholder="Seleccionar paquete" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="individual">PASE INDIVIDUAL</SelectItem>
-                        <SelectItem value="5classes">PAQUETE 5 CLASES</SelectItem>
-                        <SelectItem value="10classes">PAQUETE 10 CLASES</SelectItem>
-                        <SelectItem value="monthly">MEMBRESÍA MENSUAL</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Contraseña</Label>
-                    <Input
-                      type="password"
-                      id="password"
-                      value={newUserForm.password}
-                      onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))}
-                      placeholder="********"
-                      className="border-gray-300"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
-                    <Input
-                      type="password"
-                      id="confirm-password"
-                      value={newUserForm.confirmPassword}
-                      onChange={(e) => setNewUserForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      placeholder="********"
-                      className="border-gray-300"
+                      className="bg-white border-gray-200"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notas</Label>
-                  <Input
-                    id="notes"
-                    value={newUserForm.notes}
-                    onChange={(e) => setNewUserForm(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Notas adicionales"
-                    className="border-gray-300"
-                  />
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Nota:</strong> Se enviará automáticamente un email al usuario con un enlace para establecer su contraseña. Los paquetes se pueden adquirir desde la sección de Pagos.
+                    <strong>Es recomendable avisar sobre este correo a tu cliente.</strong>
+                  </p>
                 </div>
               </div>
 
@@ -424,265 +577,205 @@ export default function UsersPage() {
                 <Button
                   variant="outline"
                   onClick={() => setIsNewUserOpen(false)}
-                  className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                  className="border-gray-200 text-zinc-900 hover:bg-gray-100"
                   disabled={isSubmitting}
                 >
                   Cancelar
                 </Button>
                 <Button 
-                  className="bg-[#4A102A] hover:bg-[#85193C]" 
+                  className="bg-[#4A102A] hover:bg-[#85193C] text-white" 
                   onClick={handleCreateUser}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !emailValidation.isValid || !newUserForm.firstName || !newUserForm.lastName || !newUserForm.email}
                 >
                   {isSubmitting ? "Creando..." : "Crear Usuario"}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 mb-8 bg-gray-100">
-          <TabsTrigger
-            value="all"
-            onClick={() => setStatusFilter("all")}
-            className="data-[state=active]:bg-white data-[state=active]:text-[#4A102A]"
-          >
-            Todos los Usuarios
-          </TabsTrigger>
- 
-        </TabsList>
+      {/* Título del historial de usuarios */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-[#4A102A]">Lista de Usuarios</h2>
+      </div>
 
-        <TabsContent value="all">
-          <Card className="bg-white border-gray-200">
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <CardTitle className="text-lg text-gray-900">Usuarios</CardTitle>
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    type="search"
-                    placeholder="Buscar usuarios..."
-                    className="pl-8 border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A] w-full"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">Cargando usuarios...</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left p-4 font-medium text-gray-500">Usuario</th>
-                        <th className="text-left p-4 font-medium text-gray-500">Contacto</th>
-                        <th className="text-left p-4 font-medium text-gray-500">Paquete</th>
-                        <th className="text-left p-4 font-medium text-gray-500">Fecha de Registro</th>
-                        <th className="text-left p-4 font-medium text-gray-500">Estado</th>
-                        <th className="text-left p-4 font-medium text-gray-500">Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredUsers.length > 0 ? (
-                        filteredUsers.map((user) => (
-                          <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50">
-                            <td className="p-4">
-                              <div className="flex items-center">
-        
-                                <div>
-                                  <div className="font-medium text-gray-900">{user.name}</div>
-                                  <div className="text-sm text-gray-500">ID: #{user.id}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="space-y-1">
-                                <div className="flex items-center text-sm text-gray-700">
-                                  <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                                  <span>{user.email}</span>
-                                </div>
-                                <div className="flex items-center text-sm text-gray-700">
-                                  <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                                  <span>{user.phone || "No registrado"}</span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="space-y-1">
-                                <div className="flex items-center text-gray-700">
-                                  <Package className="h-4 w-4 mr-2 text-[#4A102A]" />
-                                  <span>{user.package}</span>
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  Clases restantes: {user.remainingClasses}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center text-gray-700">
-                                <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                                <span>{user.joinDate}</span>
-                              </div>
-                            </td>
-                           
-                            <td className="p-4">
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs ${
-                                  user.status === "active" 
-                                    ? "bg-green-100 text-green-800" 
-                                    : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {user.status === "active" ? "Activo" : "Inactivo"}
-                              </span>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 border-gray-300 text-gray-700 hover:bg-gray-100"
-                                  onClick={async () => {
-                                    await loadUserDetails(user.id)
-                                    setIsViewUserOpen(true)
-                                  }}
-                                >
-                                  Ver
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 border-gray-300 text-gray-700 hover:bg-gray-100"
-                                  onClick={async () => {
-                                    await loadUserDetails(user.id)
-                                    setIsEditUserOpen(true)
-                                  }}
-                                >
-                                  Editar
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 border-red-200 text-red-600 hover:bg-red-50"
-                                  onClick={() => handleDeleteUser(user.id)}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={7} className="p-4 text-center text-gray-500">
-                            {isLoading ? "Cargando..." : "No se encontraron usuarios con los filtros aplicados"}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {/* Barra de búsqueda y filtros optimizada */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+          <Input
+            type="search"
+            placeholder="Buscar por nombre, email o teléfono..."
+            className="pl-8 bg-white border-gray-200 text-zinc-900 w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {isFiltering && (
+            <div className="absolute right-2.5 top-2.5">
+              <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-[#4A102A] rounded-full"></div>
+            </div>
+          )}
+        </div>
 
-        <TabsContent value="active">
-          <Card className="bg-white border-gray-200">
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <CardTitle className="text-lg text-gray-900">Usuarios Activos</CardTitle>
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    type="search"
-                    placeholder="Buscar usuarios..."
-                    className="pl-8 border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A] w-full"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-500 text-center py-8">
-                Mostrando solo usuarios activos - {filteredUsers.filter(u => u.status === 'active').length} usuarios
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="bg-white border-gray-200 text-zinc-900 w-full sm:w-[180px]">
+            <SelectValue placeholder="Filtrar por estado" />
+          </SelectTrigger>
+          <SelectContent className="bg-white border-gray-200 text-zinc-900">
+            <SelectItem value="all">Todos los estados</SelectItem>
+            <SelectItem value="active">Activos</SelectItem>
+            <SelectItem value="inactive">Inactivos</SelectItem>
+            <SelectItem value="pending_verification">Pendientes</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-        <TabsContent value="inactive">
-          <Card className="bg-white border-gray-200">
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <CardTitle className="text-lg text-gray-900">Usuarios Inactivos</CardTitle>
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    type="search"
-                    placeholder="Buscar usuarios..."
-                    className="pl-8 border-gray-300 focus:border-[#4A102A] focus:ring-[#4A102A] w-full"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-500 text-center py-8">
-                Mostrando solo usuarios inactivos - {filteredUsers.filter(u => u.status === 'inactive').length} usuarios
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Tabla de usuarios */}
+      <Card className="bg-white border-gray-200 shadow-sm">
+        <CardContent className="p-0">
+          <div className="sm:overflow-x-visible overflow-x-auto">
+            <div className="max-h-[60vh] overflow-y-auto">
+              <table className="w-full">
+                <thead className="sticky top-0 z-10">
+                  <tr className="border-b border-gray-200 bg-gray-50/95 backdrop-blur-sm">
+                    <th className="text-left py-3 px-3 text-xs font-semibold text-gray-800 uppercase tracking-wider w-[250px]">Usuario</th>
+                    <th className="text-left py-3 px-3 text-xs font-semibold text-gray-800 uppercase tracking-wider w-[180px]">Contacto</th>
+                    <th className="text-left py-3 px-3 text-xs font-semibold text-gray-800 uppercase tracking-wider w-[130px]">Registro</th>
+                    <th className="text-left py-3 px-3 text-xs font-semibold text-gray-800 uppercase tracking-wider w-[100px]">Estado</th>
+                    <th className="text-center py-3 px-3 text-xs font-semibold text-gray-800 uppercase tracking-wider w-[80px]">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {filteredUsers.map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-50/60 transition-colors duration-150">
+                      <td className="py-2.5 px-3">
+                        <div className="max-w-[240px]">
+                          <div className="font-medium text-gray-900 truncate text-sm">{user.name}</div>
+                          <div className="text-xs text-gray-500">ID: {user.id}</div>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <div className="max-w-[170px]">
+                          <div className="text-sm text-gray-900 truncate">{user.email}</div>
+                          <div className="text-xs text-gray-500 truncate">{user.phone}</div>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <div className="text-sm text-gray-900">{user.joinDate}</div>
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                          user.status === "active" ? "bg-green-100 text-green-800" :
+                          user.status === "inactive" ? "bg-red-100 text-red-800" :
+                          user.status === "pending_verification" ? "bg-yellow-100 text-yellow-800" :
+                          "bg-gray-100 text-gray-800"
+                        }`}>
+                          {user.status === "active" ? "Activo" : 
+                           user.status === "inactive" ? "Inactivo" : 
+                           user.status === "pending_verification" ? "Pendiente" : "Desconocido"}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <div className="flex justify-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs border-gray-200 text-gray-600 hover:bg-gray-100"
+                            onClick={async () => {
+                              await loadUserDetails(user.id)
+                              setIsViewUserOpen(true)
+                            }}
+                          >
+                            Ver
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs border-blue-200 text-blue-600 hover:bg-blue-50"
+                            onClick={() => {
+                              setSelectedUserForReservations(user)
+                              setIsReservationsModalOpen(true)
+                            }}
+                          >
+                            <List className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs border-gray-200 text-gray-600 hover:bg-gray-100"
+                            onClick={async () => {
+                              await loadUserDetails(user.id)
+                              setIsEditUserOpen(true)
+                            }}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs border-red-200 text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                              setUserToDelete(user)
+                              setIsDeleteUserOpen(true)
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                          <UserDetailsMenu user={user} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Modal para ver detalles del usuario */}
-      <Dialog open={isViewUserOpen} onOpenChange={setIsViewUserOpen}>
-        <DialogContent className="bg-white border-gray-200 text-gray-900 max-w-4xl">
+      <Dialog open={isViewUserOpen} onOpenChange={(open) => {
+        setIsViewUserOpen(open)
+        if (!open) {
+          setShowAllPurchases(false) // Reset al cerrar el modal
+        }
+      }}>
+        <DialogContent className="bg-white border-gray-200 text-zinc-900 max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalles del Usuario</DialogTitle>
+            <DialogTitle className="text-[#4A102A] text-xl">Detalles del Usuario</DialogTitle>
           </DialogHeader>
 
           {selectedUser && (
-            <div className="py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Información básica */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[#4A102A]">Información Personal</h3>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-gray-500">Nombre Completo</Label>
-                    <div className="bg-gray-50 p-2 rounded-md text-gray-900">
+            <div className="space-y-6">
+              {/* Información Personal */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-[#4A102A]">Información Personal</h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Nombre Completo</label>
+                    <div className="text-base text-gray-900 mt-1">
                       {selectedUser.firstName} {selectedUser.lastName}
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-gray-500">Email</Label>
-                    <div className="bg-gray-50 p-2 rounded-md text-gray-900">{selectedUser.email}</div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Email</label>
+                    <div className="text-base text-gray-900 mt-1">{selectedUser.email}</div>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-gray-500">Teléfono</Label>
-                    <div className="bg-gray-50 p-2 rounded-md text-gray-900">
-                      {selectedUser.phone || "No registrado"}
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Teléfono</label>
+                    <div className="text-base text-gray-900 mt-1">
+                      {selectedUser.phone || 'No registrado'}
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-gray-500">Estado</Label>
-                    <div className="bg-gray-50 p-2 rounded-md">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Estado</label>
+                    <div className="mt-1">
+                      <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
                         selectedUser.status === "active" 
                           ? "bg-green-100 text-green-800" 
                           : "bg-red-100 text-red-800"
@@ -692,126 +785,129 @@ export default function UsersPage() {
                     </div>
                   </div>
                 </div>
-
-                {/* Balance y paquetes */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[#4A102A]">Balance de Clases</h3>
-                  
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <div className="text-2xl font-bold text-blue-600">
-                          {selectedUser.balance.totalClassesPurchased}
-                        </div>
-                        <div className="text-xs text-gray-600">Compradas</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-green-600">
-                          {selectedUser.balance.classesAvailable}
-                        </div>
-                        <div className="text-xs text-gray-600">Disponibles</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-gray-600">
-                          {selectedUser.balance.classesUsed}
-                        </div>
-                        <div className="text-xs text-gray-600">Usadas</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Paquetes activos */}
-                  <div>
-                    <h4 className="font-semibold mb-2">Paquetes Activos</h4>
-                    {selectedUser.activePackages.length > 0 ? (
-                      <div className="space-y-2">
-                        {selectedUser.activePackages.map((pkg) => (
-                          <div key={pkg.id} className="bg-gray-50 p-3 rounded-md">
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium">{pkg.name}</span>
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                pkg.paymentStatus === "paid" 
-                                  ? "bg-green-100 text-green-800" 
-                                  : "bg-yellow-100 text-yellow-800"
-                              }`}>
-                                {pkg.paymentStatus === "paid" ? "Pagado" : "Pendiente"}
-                              </span>
-                            </div>
-                            <div className="text-sm text-gray-600 mt-1">
-                              Clases restantes: {pkg.classesRemaining} | Expira: {pkg.expiryDate}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-500 text-sm">No tiene paquetes activos</p>
-                    )}
-                  </div>
-                </div>
               </div>
 
-              {/* Reservaciones recientes */}
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-[#4A102A] mb-4">Reservaciones Recientes</h3>
-                {selectedUser.recentReservations.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-2">Clase</th>
-                          <th className="text-left p-2">Fecha</th>
-                          <th className="text-left p-2">Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedUser.recentReservations.map((reservation) => (
-                          <tr key={reservation.id} className="border-b">
-                            <td className="p-2">{reservation.className}</td>
-                            <td className="p-2">{reservation.date}</td>
-                            <td className="p-2">
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                reservation.status === "confirmed" 
-                                  ? "bg-green-100 text-green-800" 
-                                  : reservation.status === "cancelled"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                              }`}>
-                                {reservation.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              {/* Botón para ver todas las reservaciones */}
+              <div className="pt-4 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  className="w-full border-blue-200 text-blue-600 hover:bg-blue-50"
+                  onClick={() => {
+                    setIsViewUserOpen(false)
+                    setSelectedUserForReservations({
+                      id: selectedUser.id,
+                      name: `${selectedUser.firstName} ${selectedUser.lastName}`,
+                      email: selectedUser.email,
+                      phone: selectedUser.phone,
+                      package: "",
+                      remainingClasses: 0,
+                      joinDate: selectedUser.joinDate,
+                      lastVisit: selectedUser.lastVisitDate || "",
+                      status: selectedUser.status
+                    })
+                    setIsReservationsModalOpen(true)
+                  }}
+                >
+                  <List className="h-4 w-4 mr-2" />
+                  Ver Todas las Reservaciones
+                </Button>
+              </div>
+
+              {/* Historial de Compras */}
+              <div className="space-y-4 pt-4 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-[#4A102A]">Compras Recientes</h3>
+                
+                {selectedUser.purchaseHistory && selectedUser.purchaseHistory.length > 0 ? (
+                  <div className="space-y-3">
+                    {/* Mostrar las compras según el estado showAllPurchases */}
+                    {(showAllPurchases ? selectedUser.purchaseHistory : selectedUser.purchaseHistory.slice(0, 2)).map((purchase) => (
+                      <div 
+                        key={purchase.id} 
+                        className={`p-3 rounded-lg border flex justify-between items-center ${
+                          purchase.isActive 
+                            ? 'bg-green-50 border-green-200' 
+                            : 'bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-sm text-gray-800">
+                            {purchase.name}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {new Date(purchase.purchaseDate).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit', 
+                              year: '2-digit'
+                            })}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {purchase.amount > 0 && (
+                            <span className="text-sm font-medium text-gray-900">
+                              ${purchase.amount.toLocaleString()}
+                            </span>
+                          )}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            purchase.isActive 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {purchase.isActive ? 'Activo' : 'Vencido'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Botón para ver todas/menos si hay más de 2 */}
+                    {selectedUser.purchaseHistory.length > 2 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-blue-600 hover:bg-blue-50 text-xs"
+                        onClick={() => setShowAllPurchases(!showAllPurchases)}
+                      >
+                        {showAllPurchases 
+                          ? 'Ver menos' 
+                          : `Ver todas las compras (${selectedUser.purchaseHistory.length})`
+                        }
+                      </Button>
+                    )}
                   </div>
                 ) : (
-                  <p className="text-gray-500">No tiene reservaciones recientes</p>
+                  <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg">
+                    <div className="text-sm">No hay compras registradas</div>
+                  </div>
                 )}
               </div>
 
-              <div className="flex justify-between mt-6">
+              {/* Botones de acción */}
+              <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4 border-t border-gray-200">
                 <Button
                   variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                  className="border-gray-200 text-zinc-900 hover:bg-gray-100"
                   onClick={() => setIsViewUserOpen(false)}
                 >
                   Cerrar
                 </Button>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    className="border-gray-300 text-gray-700 hover:bg-gray-100"
-                    onClick={() => {
-                      setIsViewUserOpen(false)
-                      setIsEditUserOpen(true)
-                    }}
-                  >
-                    <Edit className="h-4 w-4 mr-2" /> Editar
-                  </Button>
-                  <Button className="bg-[#4A102A] hover:bg-[#85193C]">
-                    Ver Reservaciones
-                  </Button>
-                </div>
+                <Button 
+                  variant="outline" 
+                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  onClick={() => {
+                    setEditUserForm({
+                      firstName: selectedUser.firstName,
+                      lastName: selectedUser.lastName,
+                      email: selectedUser.email,
+                      phone: selectedUser.phone,
+                      status: selectedUser.status,
+                      password: ''
+                    })
+                    setIsViewUserOpen(false)
+                    setIsEditUserOpen(true)
+                  }}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar Usuario
+                </Button>
               </div>
             </div>
           )}
@@ -837,7 +933,7 @@ export default function UsersPage() {
                     id="edit-firstName"
                     value={editUserForm.firstName}
                     onChange={(e) => setEditUserForm(prev => ({ ...prev, firstName: e.target.value }))}
-                    className="border-gray-300"
+                    className="bg-white border-gray-200"
                   />
                 </div>
 
@@ -847,7 +943,7 @@ export default function UsersPage() {
                     id="edit-lastName"
                     value={editUserForm.lastName}
                     onChange={(e) => setEditUserForm(prev => ({ ...prev, lastName: e.target.value }))}
-                    className="border-gray-300"
+                    className="bg-white border-gray-200"
                   />
                 </div>
 
@@ -858,7 +954,7 @@ export default function UsersPage() {
                     id="edit-email"
                     value={editUserForm.email}
                     onChange={(e) => setEditUserForm(prev => ({ ...prev, email: e.target.value }))}
-                    className="border-gray-300"
+                    className="bg-white border-gray-200"
                   />
                 </div>
 
@@ -869,14 +965,14 @@ export default function UsersPage() {
                     id="edit-phone"
                     value={editUserForm.phone}
                     onChange={(e) => setEditUserForm(prev => ({ ...prev, phone: e.target.value }))}
-                    className="border-gray-300"
+                    className="bg-white border-gray-200"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="edit-status">Estado</Label>
                   <Select value={editUserForm.status} onValueChange={(value) => setEditUserForm(prev => ({ ...prev, status: value }))}>
-                    <SelectTrigger className="border-gray-300">
+                    <SelectTrigger className="bg-white border-gray-200">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -887,17 +983,7 @@ export default function UsersPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="edit-password">Nueva Contraseña (opcional)</Label>
-                  <Input
-                    type="password"
-                    id="edit-password"
-                    value={editUserForm.password}
-                    onChange={(e) => setEditUserForm(prev => ({ ...prev, password: e.target.value }))}
-                    placeholder="Dejar vacío para mantener actual"
-                    className="border-gray-300"
-                  />
-                </div>
+              
               </div>
             </div>
           )}
@@ -906,13 +992,13 @@ export default function UsersPage() {
             <Button
               variant="outline"
               onClick={() => setIsEditUserOpen(false)}
-              className="border-gray-300 text-gray-700 hover:bg-gray-100"
+              className="border-gray-200 text-zinc-900 hover:bg-gray-100"
               disabled={isSubmitting}
             >
               Cancelar
             </Button>
             <Button 
-              className="bg-[#4A102A] hover:bg-[#85193C]" 
+              className="bg-[#4A102A] hover:bg-[#85193C] text-white" 
               onClick={handleUpdateUser}
               disabled={isSubmitting}
             >
@@ -921,6 +1007,67 @@ export default function UsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* AlertDialog para confirmar eliminación */}
+      <AlertDialog open={isDeleteUserOpen} onOpenChange={setIsDeleteUserOpen}>
+        <AlertDialogContent className="bg-white border-gray-200 text-gray-900">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <AlertDialogTitle>Eliminar Usuario</AlertDialogTitle>
+                <AlertDialogDescription>
+                  ¿Estás seguro de que deseas eliminar a{" "}
+                  <span className="font-semibold">{userToDelete?.name}</span>?
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          
+          <div className="my-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div className="text-sm text-yellow-800">
+                <p className="font-medium mb-1">Esta acción:</p>
+                <ul className="list-disc list-inside space-y-1 text-xs">
+                  <li>Desactivará la cuenta del usuario</li>
+                  <li>Modificará su email para evitar conflictos</li>
+                  <li>No elimina el historial de reservaciones</li>
+                  <li>No se puede deshacer fácilmente</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              disabled={isSubmitting}
+              className="border-gray-200 text-gray-900 hover:bg-gray-100"
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              disabled={isSubmitting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isSubmitting ? "Eliminando..." : "Eliminar Usuario"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de Reservaciones del Usuario */}
+      {selectedUserForReservations && (
+        <UserReservationsModal
+          isOpen={isReservationsModalOpen}
+          onOpenChange={setIsReservationsModalOpen}
+          userId={selectedUserForReservations.id}
+          userName={selectedUserForReservations.name}
+        />
+      )}
     </div>
   )
 }

@@ -8,14 +8,24 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const dateParam = searchParams.get("date")
+    const branchId = searchParams.get("branchId")
+    let branchIdInt: number | null = null
+    if (branchId !== null) {
+      const parsed = parseInt(branchId, 10)
+      if (!Number.isInteger(parsed) || parsed <= 0 || String(parsed) !== branchId.trim()) {
+        return NextResponse.json({ error: "branchId debe ser un entero positivo" }, { status: 400 })
+      }
+      branchIdInt = parsed
+    }
 
     console.log("📅 Fecha solicitada:", dateParam)
 
     let dateFilter = {}
     
     if (dateParam) {
-      // Si se proporciona una fecha específica, buscar clases para ese día exacto
-      const targetDate = new Date(dateParam + "T00:00:00.000Z")
+      // Clean the dateParam to ensure it's in a valid format before creating a Date object
+      const cleanDateParam = dateParam.split(':')[0];
+      const targetDate = new Date(cleanDateParam + "T00:00:00.000Z")
       const nextDay = new Date(targetDate)
       nextDay.setUTCDate(nextDay.getUTCDate() + 1)
       
@@ -55,9 +65,7 @@ export async function GET(request: NextRequest) {
       where: {
         ...dateFilter,
         status: "scheduled",
-        availableSpots: {
-          gt: 0,
-        },
+        ...(branchIdInt ? { branch_id: branchIdInt } : {}),
       },
       include: {
         classType: true,
@@ -74,6 +82,13 @@ export async function GET(request: NextRequest) {
         reservations: {
           where: {
             status: "confirmed",
+          },
+        },
+        branches: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
           },
         },
       },
@@ -120,6 +135,16 @@ export async function GET(request: NextRequest) {
         maxCapacity: scheduledClass.maxCapacity,
         availableSpots: scheduledClass.availableSpots,
         enrolledCount: scheduledClass.reservations.length,
+        branch: scheduledClass.branches
+          ? {
+              id: scheduledClass.branches.id,
+              name: scheduledClass.branches.name,
+              address: scheduledClass.branches.address,
+            }
+          : null,
+        isSpecial: scheduledClass.isSpecial ?? false,
+        specialPrice: scheduledClass.specialPrice ? Number(scheduledClass.specialPrice) : null,
+        specialMessage: scheduledClass.specialMessage ?? null,
       }
       
       console.log(`🔄 Clase formateada:`, {

@@ -4,10 +4,6 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { format, addDays, startOfWeek, endOfWeek } from "date-fns"; // Keep only if used directly here
 import { es } from "date-fns/locale";
 import { CalendarIcon, Edit, Trash2, Users, Clock } from "lucide-react"; // Verify icons
@@ -17,6 +13,7 @@ import { ClassType, Instructor, ScheduledClass, timeSlots, weekDays, convertUtcT
 
 interface WeeklyScheduleTabProps {
   selectedWeek: Date;
+  selectedBranchId: string;
   setSelectedWeek: (date: Date) => void;
   scheduledClasses: ScheduledClass[];
   loadScheduledClasses: () => Promise<void>; // Kept, as it might be triggered by an internal refresh button someday
@@ -29,6 +26,7 @@ interface WeeklyScheduleTabProps {
 
 export default function WeeklyScheduleTab({
   selectedWeek,
+  selectedBranchId,
   setSelectedWeek,
   scheduledClasses,
   loadScheduledClasses, // Kept
@@ -115,13 +113,32 @@ export default function WeeklyScheduleTab({
                         {dayClasses.map((cls) => (
                           <div key={cls.id} className="relative group">
                             <div className="text-center">
+                              {selectedBranchId === "all" && (
+                                <div className="mb-1">
+                                  <span
+                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                                      cls.branch_id === 1
+                                        ? "bg-blue-100 text-blue-800"
+                                        : cls.branch_id === 2
+                                          ? "bg-emerald-100 text-emerald-800"
+                                          : "bg-gray-100 text-gray-700"
+                                    }`}
+                                  >
+                                    {cls.branches?.name || `Sucursal ${cls.branch_id ?? "N/A"}`}
+                                  </span>
+                                </div>
+                              )}
                               <p className="font-bold text-sm text-[#4A102A]">{cls.classType.name}</p>
                               <p className="text-xs text-gray-600">{cls.instructor.user.firstName} {cls.instructor.user.lastName}</p>
                               <div className="flex items-center justify-center gap-1 text-xs text-gray-600 mt-1">
                                 <Users className="h-3 w-3" /><span>{cls.maxCapacity - cls.availableSpots}/{cls.maxCapacity}</span>
+                                {cls.availableSpots === 0 && (
+                                  <span className="ml-1 px-1.5 py-0.5 text-xxs font-semibold bg-red-100 text-red-700 rounded-full">
+                                    LLENO
+                                  </span>
+                                )}
                                 <Clock className="h-3 w-3 ml-1" /><span>{cls.classType.duration}min</span>
                               </div>
-                              {cls.waitlist.length > 0 && (<p className="text-xs text-orange-600 mt-1">Lista de espera: {cls.waitlist.length}</p>)}
                             </div>
                             <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
                               <div className="flex gap-1">
@@ -144,6 +161,12 @@ export default function WeeklyScheduleTab({
           </div>
         </CardContent>
       </Card>
+
+      {selectedBranchId === "all" && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          Vista global activa: puedes ver clases de ambas sucursales al mismo horario. Cada tarjeta indica su sucursal.
+        </div>
+      )}
 
       {/* Edit Schedule Dialog is removed and managed by ClassesPage */}
     </div>

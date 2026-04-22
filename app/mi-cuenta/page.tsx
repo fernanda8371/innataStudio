@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Calendar, Clock, MapPin, X, ChevronRight, Settings, LogOut, Users, Target, Zap, Heart, Flame } from "lucide-react"
+import { Calendar, Clock, LogOut, Target, ChevronRight, User, Package, Bike, MapPin, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Dialog,
@@ -17,9 +16,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { useToast } from "@/components/ui/use-toast"
+import { startOfWeek } from 'date-fns';
+import { getUnlimitedWeekExpiryDate } from '@/lib/utils/unlimited-week';
 
 // Interfaces para los datos de API
 interface UserPackage {
@@ -29,6 +29,9 @@ interface UserPackage {
   classesUsed: number
   expiryDate: string
   isActive: boolean
+  purchaseDate?: string
+  branchId?: number | null
+  branchName?: string | null
 }
 
 interface UserReservation {
@@ -47,6 +50,10 @@ interface UserReservation {
   intensity?: string
   capacity?: number
   description?: string
+  bikeNumber?: number | null
+  cancelledAt?: string
+  isSpecial?: boolean
+  specialPrice?: number | null
 }
 
 interface UserProfile {
@@ -55,88 +62,160 @@ interface UserProfile {
   avatar?: string
 }
 
-/**
- * Formatea la hora de la base de datos para mostrar correctamente
- * @param timeString - Hora en formato de la BD (ej: "12:00" o "1970-01-01T12:00:00.000Z")
- * @returns Hora formateada (ej: "12:00")
- */
-function formatDisplayTime(timeString: string): string {
-  if (!timeString) return "00:00";
-  
-  try {
-    // Si ya viene en formato HH:mm, devolverlo tal cual
-    if (timeString.match(/^\d{2}:\d{2}$/)) {
-      return timeString;
-    }
-    
-    // Si viene en formato ISO de la BD, extraer la hora UTC
-    if (timeString.includes('T')) {
-      const date = new Date(timeString);
-      const hours = date.getUTCHours().toString().padStart(2, '0');
-      const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
-    }
-    
-    // Fallback
-    return timeString.substring(0, 5);
-  } catch (error) {
-    console.error("Error formateando hora:", error, timeString);
-    return "00:00";
-  }
-}
-
-/**
- * Formatea la fecha para mostrar en formato legible
- * @param dateString - Fecha en formato ISO
- * @returns Fecha formateada
- */
-function formatDisplayDate(dateString: string): string {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  } catch (error) {
-    console.error("Error formateando fecha:", error, dateString);
-    return dateString;
-  }
-}
-
-// Función para obtener el ícono según la categoría
-const getCategoryIcon = (category: string) => {
-  switch (category?.toLowerCase()) {
-    case "hiit":
-      return <Zap className="h-6 w-6" />
-    case "ritmo":
-      return <Heart className="h-6 w-6" />
-    case "resistencia":
-      return <Target className="h-6 w-6" />
-    case "recuperacion":
-      return <Heart className="h-6 w-6" />
-    default:
-      return <Flame className="h-6 w-6" />
-  }
-}
-
 // Función para obtener el color según la intensidad
-const getIntensityColor = (intensity: string) => {
+const getIntensityColor = (intensity: string | undefined) => {
   switch (intensity?.toLowerCase()) {
     case "baja":
-      return "bg-green-100 text-green-800 border-green-200"
+      return "bg-emerald-50 text-emerald-700 border-emerald-200"
     case "media":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      return "bg-amber-50 text-amber-700 border-amber-200"
     case "media-alta":
-      return "bg-orange-100 text-orange-800 border-orange-200"
+      return "bg-orange-50 text-orange-700 border-orange-200"
     case "alta":
-      return "bg-red-100 text-red-800 border-red-200"
+      return "bg-red-50 text-red-700 border-red-200"
     case "muy alta":
-      return "bg-purple-100 text-purple-800 border-purple-200"
+      return "bg-purple-50 text-purple-700 border-purple-200"
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200"
+      return "bg-gray-50 text-gray-700 border-gray-200"
   }
+}
+
+// Add new functions for grouping reservations
+const groupReservationsByClass = (reservations: UserReservation[]) => {
+  const grouped = reservations.reduce((acc, reservation) => {
+    const classKey = `${reservation.date}-${reservation.time}-${reservation.className}`
+    
+    if (!acc[classKey]) {
+      acc[classKey] = {
+        classInfo: {
+          className: reservation.className,
+          instructor: reservation.instructor,
+          date: reservation.date,
+          dateFormatted: reservation.dateFormatted,
+          time: reservation.time,
+          duration: reservation.duration,
+          location: reservation.location,
+          category: reservation.category,
+          intensity: reservation.intensity,
+          capacity: reservation.capacity,
+          description: reservation.description,
+        },
+        reservations: []
+      }
+    }
+    
+    acc[classKey].reservations.push(reservation)
+    return acc
+  }, {} as Record<string, any>)
+
+  return Object.values(grouped)
+}
+
+// Componente para mostrar una tarjeta de clase con múltiples reservas
+const ClassReservationCard = ({ 
+  classGroup, 
+  onCancelClass 
+}: { 
+  classGroup: any
+  onCancelClass: (reservation: UserReservation) => void 
+}) => {
+  const { classInfo, reservations } = classGroup
+  const canCancelAny = reservations.some((r: UserReservation) => r.canCancel)
+  const allCancelled = reservations.every((r: UserReservation) => r.status === 'cancelled')
+
+  return (
+    <Card className="mb-4">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex justify-between items-start sm:flex-row sm:justify-between sm:items-start gap 2 sm:gap-0 mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">{classInfo.className}</h3>
+            <p className="text-sm text-gray-600">Instructor: {classInfo.instructor}</p>
+            <p className="text-sm text-gray-600">
+              {classInfo.dateFormatted} • {classInfo.time} • {classInfo.duration}
+            </p>
+            <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+              <MapPin className="h-3.5 w-3.5" />
+              Sucursal: {classInfo.location}
+            </p>
+          </div>
+          <Badge variant={allCancelled ? "secondary" : "default"}className="self-start sm:self-auto bg-white border-gray-200 text-gray-800 hover:bg-gray-50"> 
+            {reservations.length} reserva{reservations.length > 1 ? 's' : ''}
+          </Badge>
+        </div>
+
+        {/* Mostrar información de cada reserva */}
+        <div className="space-y-3 mb-4">
+          {reservations.map((reservation: UserReservation) => (
+            <div 
+              key={reservation.id}
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg gap-3"
+            >
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  {reservation.bikeNumber && (
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <Bike className="h-4 w-4" /> <span>Bicicleta #{reservation.bikeNumber}</span>
+                    </div>
+                  )}
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {reservation.package}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Badge 
+                  variant={
+                    reservation.status === 'confirmed' ? 'default' :
+                    reservation.status === 'cancelled' ? 'secondary' : 'outline'
+                  }
+                  className="text-xs bg-brand-sage text-white hover:to-brand-gray"
+                >
+                  {reservation.status === 'confirmed' ? 'Confirmada' :
+                   reservation.status === 'cancelled' ? 'Cancelada' : reservation.status}
+                </Badge>
+                
+                {reservation.canCancel && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => onCancelClass(reservation)}
+                  >
+                    Cancelar
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Información adicional de la clase */}
+        {classInfo.description && (
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-800">{classInfo.description}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// Función principal para renderizar las reservas agrupadas
+const renderGroupedReservations = (reservations: UserReservation[], onCancelClass: (reservation: UserReservation) => void) => {
+  const groupedReservations = groupReservationsByClass(reservations)
+  
+  return (
+    <div className="space-y-4">
+      {groupedReservations.map((classGroup, index) => (
+        <ClassReservationCard 
+          key={index} 
+          classGroup={classGroup} 
+          onCancelClass={onCancelClass}
+        />
+      ))}
+    </div>
+  )
 }
 
 export default function ProfilePage() {
@@ -151,9 +230,12 @@ export default function ProfilePage() {
   const [userPackages, setUserPackages] = useState<UserPackage[]>([])
   const [isLoadingClasses, setIsLoadingClasses] = useState(true)
   const [isLoadingPackages, setIsLoadingPackages] = useState(true)
+  const [currentPackagePage, setCurrentPackagePage] = useState(1)
+  const packagesPerPage = 6
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [cancelResult, setCancelResult] = useState<null | 'success' | 'error'>(null)
 
   useEffect(() => {
-    // Si no hay usuario y no está cargando, redirige al home
     if (!user && !isLoading) {
       router.push("/")
     }
@@ -162,72 +244,70 @@ export default function ProfilePage() {
   // Cargar las reservaciones del usuario
   useEffect(() => {
     const loadReservations = async () => {
-      if (!user) return;
-      
+      if (!user) return
+
       try {
-        setIsLoadingClasses(true);
-        
-        // Cargar clases próximas
+        setIsLoadingClasses(true)
+
         const upcomingResponse = await fetch("/api/user/reservations?status=upcoming", {
           method: "GET",
           credentials: "include",
-        });
-        
+        })
+
         if (upcomingResponse.ok) {
-          const upcomingData: UserReservation[] = await upcomingResponse.json();
-          setUpcomingClasses(upcomingData);
+          const upcomingData: UserReservation[] = await upcomingResponse.json()
+          setUpcomingClasses(upcomingData)
         }
-        
-        // Cargar historial de clases
+
         const pastResponse = await fetch("/api/user/reservations?status=past", {
           method: "GET",
           credentials: "include",
-        });
-        
+        })
+
         if (pastResponse.ok) {
-          const pastData: UserReservation[] = await pastResponse.json();
-          setPastClasses(pastData);
+          const pastData: UserReservation[] = await pastResponse.json()
+          setPastClasses(pastData)
         }
       } catch (error) {
-        console.error("Error al cargar reservaciones:", error);
+        console.error("Error al cargar reservaciones:", error)
         toast({
           title: "Error",
           description: "No se pudieron cargar tus clases. Por favor, intenta de nuevo.",
           variant: "destructive",
-        });
+        })
       } finally {
-        setIsLoadingClasses(false);
+        setIsLoadingClasses(false)
       }
-    };
-    
-    loadReservations();
-  }, [user, toast]);
+    }
+
+    loadReservations()
+  }, [user, toast])
 
   // Cargar paquetes del usuario
   useEffect(() => {
     const loadUserPackages = async () => {
-      if (!user) return;
-      
+      if (!user) return
+
       try {
-        setIsLoadingPackages(true);
+        setIsLoadingPackages(true)
         const response = await fetch("/api/user/packages", {
           method: "GET",
           credentials: "include",
-        });
-        
+        })
+
         if (response.ok) {
-          const data: UserPackage[] = await response.json();
-          setUserPackages(data);
+          const data = await response.json()
+          setUserPackages(Array.isArray(data.packages) ? data.packages : [])
         }
       } catch (error) {
-        console.error("Error al cargar paquetes:", error);
+        console.error("Error al cargar paquetes:", error)
       } finally {
-        setIsLoadingPackages(false);
+        setIsLoadingPackages(false)
       }
-    };
-    
-    loadUserPackages();
-  }, [user]);
+    }
+
+    loadUserPackages()
+  }, [user])
 
   const handleCancelClass = (classItem: UserReservation) => {
     setSelectedClass(classItem)
@@ -235,58 +315,57 @@ export default function ProfilePage() {
   }
 
   const confirmCancelClass = async () => {
-    if (!selectedClass) return;
-    
+    if (!selectedClass) return
+    setIsCancelling(true)
+    setCancelResult(null)
     try {
       const response = await fetch(`/api/user/reservations/${selectedClass.id}/cancel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: "Cancelado por el usuario" }),
         credentials: "include",
-      });
-      
-      const data = await response.json();
-      
+      })
+      const data = await response.json()
       if (!response.ok) {
-        throw new Error(data.error || "Error al cancelar la reservación");
+        throw new Error(data.error || "Error al cancelar la reservación")
       }
-      
-      // Actualizar el estado local para reflejar la cancelación
-      setUpcomingClasses(prevClasses => 
-        prevClasses.filter(c => c.id !== selectedClass.id)
-      );
-      
+      setUpcomingClasses((prevClasses) => prevClasses.filter((c) => c.id !== selectedClass.id))
+      setCancelResult('success')
       toast({
         title: "Reservación cancelada",
-        description: data.refunded 
-          ? "Tu clase ha sido devuelta a tu paquete." 
+        description: data.refunded
+          ? "Tu clase ha sido devuelta a tu paquete."
           : "La clase ha sido cancelada pero no se pudo reembolsar debido a la política de cancelación.",
-      });
+      })
     } catch (error) {
-      console.error("Error:", error);
+      setCancelResult('error')
+      console.error("Error:", error)
       toast({
         title: "Error al cancelar",
         description: error instanceof Error ? error.message : "No se pudo cancelar la reservación",
         variant: "destructive",
-      });
+      })
     } finally {
-      setCancelDialogOpen(false);
+      setIsCancelling(false)
+      setTimeout(() => {
+        setCancelDialogOpen(false)
+        setCancelResult(null)
+      }, 1500)
     }
   }
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
     try {
-      await logout()
       toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión exitosamente.",
+        title: "Cerrando sesión...",
+        description: "Por favor espera.",
         variant: "default",
       })
-      // Redirigir al home
-      router.push('/')
-      router.refresh()
+      await logout()
+      // No necesitamos redirección manual, el hook ya lo maneja
     } catch (error) {
+      console.error("Error durante logout:", error)
       toast({
         title: "Error",
         description: "Hubo un problema al cerrar sesión.",
@@ -297,338 +376,536 @@ export default function ProfilePage() {
     }
   }
 
-  // Calcular total de clases disponibles de todos los paquetes
-  const totalAvailableClasses = userPackages.reduce(
-    (total, pkg) => total + pkg.classesRemaining, 0
-  );
+  // Calcular total de clases disponibles de todos los paquetes (incluye semana ilimitada)
+  const totalAvailableClasses = Array.isArray(userPackages)
+    ? userPackages.reduce((total, pkg) => total + (pkg.classesRemaining || 0), 0)
+    : 0
+
+  // Paginación para paquetes
+  const totalPackagePages = Math.ceil(userPackages.length / packagesPerPage)
+  const startPackageIndex = (currentPackagePage - 1) * packagesPerPage
+  const endPackageIndex = startPackageIndex + packagesPerPage
+  const currentPackages = userPackages.slice(startPackageIndex, endPackageIndex)
+
+  const handlePackagePageChange = (page: number) => {
+    setCurrentPackagePage(page)
+  }
 
   // Preparar datos del usuario
   const currentUser: UserProfile = {
-    name: user?.name || "",
-    email: user?.email || ""
+    name: user?.firstName || "",
+    email: user?.email || "",
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-zinc-900">
-      <div className="container mx-auto px-2 sm:px-4 py-6 sm:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8">
-          {/* Sidebar - Perfil */}
-          <div className="lg:col-span-3 mb-6 lg:mb-0">
-            <Card className="border-brand-mint/20 shadow-sm">
-              <CardHeader className="pb-4">
-                  <div className="flex justify-between items-center py-2 border-b border-brand-mint/20">
-                    <span className="text-zinc-600 text-sm sm:text-base">Email</span>
-                    <span className="font-medium text-brand-burgundy text-base sm:text-sm">{currentUser.email}</span>
+      {/* Header mejorado */}
+      <div className=" border-gray-100 ">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-zinc-900 mb-1 mt-1">¡Hola, {currentUser.name || "Usuario"}!</h1>
+              <p className="text-zinc-600">Gestiona tus clases y paquetes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-5">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Sidebar mejorado */}
+          <div className="lg:col-span-3">
+            <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-2xl">
+              <CardHeader className="bg-gradient-to-r from-brand-sage/5 to-brand-mint/5">
+                <div className="flex items-center gap-3">
+                  <div className="bg-brand-sage/10 p-2 rounded-full">
+                    <User className="h-5 w-5 text-brand-gray" />
                   </div>
+                  <CardTitle className="text-lg">Mi Perfil</CardTitle>
+                </div>
               </CardHeader>
-              <CardContent className="pb-4">
+              <CardContent className="pt-6">
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center py-2 border-b border-brand-mint/20">
-                    <span className="text-zinc-600 text-sm sm:text-base">Clases disponibles</span>
-                    <span className="font-medium text-brand-burgundy text-base sm:text-lg">{isLoadingPackages ? "..." : totalAvailableClasses}</span>
+                  <div className="bg-white  p-2 border-b border-brand-gray/30">
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-600 text-sm">Email</span>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="font-medium text-xs text-zinc-800">{currentUser.email}</span>
+                      </div>
                   </div>
+                  <div className="bg-white p-2 border-b border-brand-gray/30">
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-600 text-sm">Clases disponibles</span>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="font-medium text-md text-zinc-800">{isLoadingPackages ? "..." : totalAvailableClasses}</span>
+                      </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut || isLoading}
+                  >
+                    <LogOut className="mr-1 h-4 w-4" />
+                    {isLoggingOut ? "Cerrando..." : "Salir"}
+              </Button>
                 </div>
               </CardContent>
-              <CardFooter className="flex flex-col space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={handleLogout}
-                  disabled={isLoggingOut || isLoading}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {isLoggingOut ? "Cerrando sesión..." : "Cerrar sesión"}
-                </Button>
-              </CardFooter>
             </Card>
           </div>
-
-          {/* Main Content */}
           <div className="lg:col-span-9">
             <Tabs defaultValue="upcoming" className="w-full">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-2 sm:gap-0">
-                <h1 className="text-2xl sm:text-3xl font-bold">Mi Cuenta</h1>
-                <TabsList className="bg-brand-mint/10 flex flex-wrap">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
+                <TabsList className="bg-white border border-gray-200 shadow-sm p-1 rounded-2xl">
                   <TabsTrigger
                     value="upcoming"
-                    className="data-[state=active]:bg-brand-sage data-[state=active]:text-white"
+                    className="data-[state=active]:bg-brand-cream data-[state=active]:text-white data-[state=active]:shadow-sm rounded-xl text-xs sm:text-sm flex-1 sm:flex-auto"
                   >
                     Próximas Clases
                   </TabsTrigger>
                   <TabsTrigger
                     value="packages"
-                    className="data-[state=active]:bg-brand-sage data-[state=active]:text-white"
+                    className="data-[state=active]:bg-brand-cream data-[state=active]:text-white data-[state=active]:shadow-sm rounded-xl text-xs sm:text-sm flex-1 sm:flex-auto"
                   >
                     Mis Paquetes
                   </TabsTrigger>
                   <TabsTrigger
                     value="history"
-                    className="data-[state=active]:bg-brand-sage data-[state=active]:text-white"
+                    className="data-[state=active]:bg-brand-cream data-[state=active]:text-white data-[state=active]:shadow-sm rounded-xl text-xs sm:text-sm flex-1 sm:flex-auto"
                   >
                     Historial
                   </TabsTrigger>
                 </TabsList>
+
+                <Button
+                  asChild
+                  className="bg-brand-gray/90 hover:bg-brand-gray text-white shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl"
+                >
+                  <Link href="/reservar">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Reservar Nueva Clase
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
               </div>
 
-              <TabsContent value="upcoming" className="mt-0">
-                <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
-                  <h2 className="text-lg sm:text-xl font-semibold">Clases Reservadas</h2>
-                  <Button asChild className="bg-brand-sage hover:bg-brand-gray text-white rounded-full w-full sm:w-auto">
-                    <Link href="/reservar">
-                      Reservar Nueva Clase
-                      <ChevronRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-
+              <TabsContent value="upcoming">
                 {upcomingClasses.length === 0 ? (
-                  <div className="text-center py-8 sm:py-12 bg-brand-cream/10 rounded-lg">
-                    <p className="text-zinc-600">No tienes clases reservadas actualmente.</p>
-                    <Button asChild className="mt-4 bg-brand-sage hover:bg-brand-gray text-white w-full sm:w-auto">
-                      <Link href="/reservar">Reservar una clase</Link>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {upcomingClasses.map((classItem) => (
-                      <Card 
-                        key={classItem.id} 
-                        className="bg-white border-gray-100 overflow-hidden rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 group"
-                      >
-                        {/* Header visual con ícono */}
-                        <div className="relative h-20 sm:h-24 bg-gradient-to-br from-brand-sage/50 via-brand-mint/25 to-brand-sage/20 flex items-center justify-center">
-                          <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                            <Badge className="bg-white/90 text-brand-sage border-0 shadow-sm">
-                              {classItem.duration}
-                            </Badge>
-                          </div>
+                  <Card className="text-center py-16 bg-gradient-to-br from-brand-cream/20 to-brand-mint/10 border-dashed border-2 border-brand-sage/20">
+                    <CardContent>
+                      <div className="max-w-md mx-auto">
+                        <div className="bg-brand-sage/10 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                          <Calendar className="h-8 w-8 text-brand-sage" />
                         </div>
-                        <CardContent className="p-4 sm:p-6">
-                          <div className="mb-2 sm:mb-4">
-                            <h3 className="text-lg sm:text-xl font-bold text-brand-sage mb-1 sm:mb-2 group-hover:text-brand-mint transition-colors">
-                              {classItem.className}
-                            </h3>
-                            <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-1 sm:mb-2">
-                              Con {classItem.instructor}
-                            </p>
-                            {classItem.description && (
-                              <p className="text-gray-600 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                                {classItem.description}
-                              </p>
-                            )}
-                          </div>
-                          {/* Información de la clase */}
-                          <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600">
-                                <Calendar className="h-4 w-4 text-brand-sage" />
-                                <span>Fecha:</span>
-                              </div>
-                              {/* Usa dateFormatted si está disponible, si no usa date */}
-                              <span className="text-xs font-medium text-black">
-                                {classItem.dateFormatted || classItem.date}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600">
-                                <Clock className="h-4 w-4 text-brand-sage" />
-                                <span>Hora:</span>
-                              </div>
-                              <span className="text-xs font-medium text-black">{classItem.time}</span>
-                            </div>
-                            {classItem.intensity && (
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600">
-                                  <Target className="h-4 w-4 text-brand-sage" />
-                                  <span>Intensidad:</span>
-                                </div>
-                                <Badge className={`text-xs border ${getIntensityColor(classItem.intensity)}`}>
-                                  {classItem.intensity}
-                                </Badge>
-                              </div>
-                            )}
-                            {classItem.capacity && (
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600">
-                                  <Users className="h-4 w-4 text-brand-sage" />
-                                  <span>Capacidad:</span>
-                                </div>
-                                <span className="font-semibold text-brand-sage">{classItem.capacity} personas</span>
-                              </div>
-                            )}
-                          </div>
-                          {/* Botón de cancelar o estado cancelado */}
-                          {classItem.status === "cancelled" ? (
-                            <Button
-                              variant="outline"
-                              className="w-full text-red-400 bg-red-50 border-red-200 rounded-full cursor-not-allowed opacity-80"
-                              disabled
-                            >
-                              <X className="mr-2 h-4 w-4" />
-                              Reserva Cancelada
-                            </Button>
-                          ) : classItem.canCancel && (
-                            <Button
-                              variant="outline"
-                              className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 rounded-full group-hover:shadow-lg transition-all duration-300 text-xs sm:text-base"
-                              onClick={() => handleCancelClass(classItem)}
-                            >
-                              <X className="mr-2 h-4 w-4" />
-                              Cancelar Reserva
-                            </Button>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="packages" className="mt-0">
-                <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
-                  <h2 className="text-lg sm:text-xl font-semibold">Mis Paquetes</h2>
-                  <Button asChild className="bg-brand-sage hover:bg-brand-gray text-white rounded-full w-full sm:w-auto">
-                    <Link href="/paquetes">
-                      Comprar Paquete
-                      <ChevronRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-                {isLoadingPackages ? (
-                  <div className="text-center py-8 sm:py-12">
-                    <p className="text-zinc-600">Cargando paquetes...</p>
-                  </div>
-                ) : userPackages.length === 0 ? (
-                  <div className="text-center py-8 sm:py-12 bg-brand-cream/10 rounded-lg">
-                    <p className="text-zinc-600 mb-4">No tienes paquetes activos actualmente.</p>
-                    <Button asChild className="bg-brand-sage hover:bg-brand-gray text-white w-full sm:w-auto">
-                      <Link href="/paquetes">Comprar un paquete</Link>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                    {userPackages.map((pkg) => (
-                      <Card key={pkg.id} className="border-brand-mint/20 shadow-sm">
-                        <CardHeader>
-                          <CardTitle className="text-base sm:text-lg font-semibold text-brand-burgundy">
-                            {pkg.name}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2 sm:space-y-3">
-                            <div className="flex justify-between items-center">
-                              <span className="text-zinc-600 text-sm">Clases restantes</span>
-                              <span className="font-bold text-xl sm:text-2xl text-brand-sage">
-                                {pkg.classesRemaining}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-zinc-600 text-sm">Clases usadas</span>
-                              <span className="font-medium text-zinc-700">
-                                {pkg.classesUsed}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-zinc-600 text-sm">Expira el</span>
-                              <span className="font-medium text-zinc-700">
-                                {new Date(pkg.expiryDate).toLocaleDateString('es-ES', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric'
-                                })}
-                              </span>
-                            </div>
-                            <div className="w-full bg-brand-cream/30 rounded-full h-2">
-                              <div className="bg-brand-sage h-2 rounded-full transition-all duration-300 w-1/2" />
-                            </div>
-                          </div>
-                        </CardContent>
-                        <CardFooter>
-                          <Button asChild className="w-full bg-brand-mint hover:bg-brand-sage text-white">
-                            <Link href="/reservar">
-                              Usar para reservar
-                            </Link>
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="history" className="mt-0">
-                <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Historial de Clases</h2>
-                {pastClasses.map((classItem) => (
-                  <Card key={classItem.id} className="overflow-hidden border-brand-mint/20 shadow-sm">
-                    <div className="flex flex-col md:flex-row">
-                      <div className="flex-1 p-3 sm:p-4">
-                        <h3 className="text-base sm:text-lg font-bold">{classItem.className}</h3>
-                        <p className="text-zinc-600 text-sm">Con {classItem.instructor}</p>
-                        <div className="mt-1 sm:mt-2 space-y-1">
-                          <div className="flex items-center text-zinc-700 text-xs sm:text-sm">
-                            <Calendar className="h-4 w-4 mr-2 text-brand-gray" />
-                            {/* Usa dateFormatted si está disponible, si no usa date */}
-                            <span>{classItem.dateFormatted || classItem.date}</span>
-                          </div>
-                          <div className="flex items-center text-zinc-700 text-xs sm:text-sm">
-                            <Clock className="h-4 w-4 mr-2 text-brand-gray" />
-                            <span>
-                              {classItem.time} • {classItem.duration}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-3 sm:p-4 flex items-center">
-                        <Button
-                          variant="outline"
-                          className="bg-brand-mint/10 hover:bg-brand-mint/20 border-brand-mint/20 w-full sm:w-auto text-xs sm:text-base"
-                        >
-                          Reservar Similar
+                        <h3 className="text-xl font-semibold mb-2 text-zinc-800">No tienes clases reservadas</h3>
+                        <p className="text-zinc-600 mb-6">¡Es hora de reservar tu próxima sesión!</p>
+                        <Button asChild className="bg-brand-mint hover:bg-brand-gray text-white shadow-sm">
+                          <Link href="/reservar">
+                            Reservar una clase
+                            <ChevronRight className="ml-2 h-4 w-4" />
+                          </Link>
                         </Button>
                       </div>
-                    </div>
+                    </CardContent>
                   </Card>
-                ))}
+                ) : (renderGroupedReservations(upcomingClasses, handleCancelClass)
+                )}
+              </TabsContent>
+
+              <TabsContent value="packages">
+                {isLoadingPackages ? (
+                  <div className="text-center py-16">
+                    <div className="animate-pulse">
+                      <div className="bg-gray-200 rounded-lg h-8 w-48 mx-auto mb-4"></div>
+                      <div className="bg-gray-200 rounded-lg h-4 w-32 mx-auto"></div>
+                    </div>
+                  </div>
+                ) : userPackages.length === 0 ? (
+                  <Card className="text-center py-16 bg-gradient-to-br from-brand-cream/20 to-brand-mint/10 border-dashed border-2 border-brand-sage/20">
+                    <CardContent>
+                      <div className="max-w-md mx-auto">
+                        <div className="bg-brand-mint/10 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                          <Package className="h-8 w-8 text-brand-mint" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2 text-zinc-800">No tienes paquetes activos</h3>
+                        <p className="text-zinc-600 mb-6">Compra un paquete para comenzar</p>
+                        <Button asChild className="bg-brand-sage hover:bg-brand-gray text-white shadow-sm">
+                          <Link href="/paquetes">
+                            Comprar un paquete
+                            <ChevronRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {currentPackages.map((pkg) => (
+                        <Card
+                          key={pkg.id}
+                          className="border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+                        >
+                          <div className="bg-gradient-to-r from-brand-sage/10 to-brand-mint/10 p-6 border-b border-gray-100">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-xl font-bold text-brand-cream">{pkg.name}</h3>
+                              <div className="bg-brand-sage/20 p-2 rounded-full">
+                                <Package className="h-5 w-5 text-brand-cream" />
+                              </div>
+                            </div>
+                            {pkg.branchName && (
+                              <div className="flex items-center gap-1 text-xs text-zinc-500 mb-3">
+                                <MapPin className="h-3 w-3" />
+                                <span>{pkg.branchName}</span>
+                              </div>
+                            )}
+                            <div className="text-center">
+                              <div className="text-3xl font-bold text-brand-cream mb-1">{pkg.classesRemaining}</div>
+                              <p className="text-sm text-zinc-600">clases restantes</p>
+                            </div>
+                          </div>
+
+                          <CardContent className="p-6">
+                            <div className="space-y-4 mb-6">
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-zinc-600">Clases usadas</span>
+                                <span className="font-medium text-zinc-800">{pkg.classesUsed}</span>
+                              </div>
+                              {pkg.name === 'SEMANA ILIMITADA' ? (
+                                <div className="flex flex-col gap-1 text-xs text-zinc-600 mt-2">
+                                  <span>Semana válida:</span>
+                                  <span className="font-semibold text-zinc-800">
+                                    {pkg.purchaseDate ? (() => {
+                                      try {
+                                        const purchaseDateObj = new Date(pkg.purchaseDate); // Should be Monday UTC midnight
+
+                                        // Get day and month for start date using UTC methods
+                                        const startDay = purchaseDateObj.getUTCDate();
+                                        const startMonth = purchaseDateObj.toLocaleDateString('es-ES', { month: 'short' });
+                                        
+                                        // Calculate Friday based on purchaseDate (Monday)
+                                        const fridayDateObj = new Date(purchaseDateObj);
+                                        fridayDateObj.setUTCDate(purchaseDateObj.getUTCDate() + 4);
+                                        
+                                        // Get day, month, and year for end date using UTC methods
+                                        const endDay = fridayDateObj.getUTCDate();
+                                        const endMonth = fridayDateObj.toLocaleDateString('es-ES', { month: 'short' });
+                                        const endYear = fridayDateObj.getUTCFullYear();
+
+                                        return `${startDay} ${startMonth} al ${endDay} ${endMonth} ${endYear}`;
+                                      } catch (e) {
+                                        console.error("Error formatting date for Semana Ilimitada:", e);
+                                        return 'Fechas no disponibles';
+                                      }
+                                    })() : (
+                                      'No disponible'
+                                    )}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col gap-1 text-xs text-zinc-600 mt-2">
+                                  <span>Expira el:</span>
+                                  <span className="font-semibold text-zinc-800">
+                                    {pkg.expiryDate ? (() => {
+                                      try {
+                                        // Validar que la fecha no sea null, undefined o string vacío
+                                        if (!pkg.expiryDate || pkg.expiryDate === '') {
+                                          return 'No disponible';
+                                        }
+                                        
+                                        let expiryDateObj;
+                                        
+                                        // Si ya viene con formato ISO completo (YYYY-MM-DDTHH:mm:ss.sssZ)
+                                        if (pkg.expiryDate.includes('T')) {
+                                          expiryDateObj = new Date(pkg.expiryDate);
+                                        } 
+                                        // Si viene solo con fecha (YYYY-MM-DD)
+                                        else {
+                                          expiryDateObj = new Date(pkg.expiryDate + 'T00:00:00.000Z');
+                                        }
+                                        
+                                        // Verificar que la fecha sea válida
+                                        if (isNaN(expiryDateObj.getTime())) {
+                                          return 'Fecha inválida';
+                                        }
+                                        
+                                        // Usar métodos UTC para extraer la fecha sin conversión de zona horaria
+                                        const day = expiryDateObj.getUTCDate();
+                                        const month = expiryDateObj.getUTCMonth();
+                                        const year = expiryDateObj.getUTCFullYear();
+                                        
+                                        // Array de nombres de meses en español (formato corto)
+                                        const monthNames = [
+                                          'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+                                          'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
+                                        ];
+                                        
+                                        return `${day} ${monthNames[month]} ${year}`;
+                                      } catch (e) {
+                                        console.error("Error formatting expiry date:", e);
+                                        return 'Error en fecha';
+                                      }
+                                    })() : 'No disponible'}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="bg-gradient-to-r from-brand-sage to-brand-mint h-2 rounded-full transition-all duration-500"
+                                  style={{
+                                    width: `${(pkg.classesUsed / (pkg.classesUsed + pkg.classesRemaining)) * 100}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            <Button
+                              asChild
+                              className="w-full bg-brand-mint hover:bg-brand-mint/90 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                            >
+                              <Link href="/reservar">
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Usar para reservar
+                              </Link>
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Paginador para paquetes */}
+                    {totalPackagePages > 1 && (
+                      <div className="flex justify-center items-center space-x-2 mt-8">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePackagePageChange(currentPackagePage - 1)}
+                          disabled={currentPackagePage === 1}
+                          className="h-9 px-3"
+                        >
+                          Anterior
+                        </Button>
+                        
+                        <div className="flex space-x-1">
+                          {Array.from({ length: totalPackagePages }, (_, i) => i + 1).map((page) => (
+                            <Button
+                              key={page}
+                              variant={currentPackagePage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handlePackagePageChange(page)}
+                              className={`h-9 w-9 ${
+                                currentPackagePage === page 
+                                  ? "bg-brand-sage hover:bg-brand-gray text-white" 
+                                  : "hover:bg-brand-sage/10"
+                              }`}
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePackagePageChange(currentPackagePage + 1)}
+                          disabled={currentPackagePage === totalPackagePages}
+                          className="h-9 px-3"
+                        >
+                          Siguiente
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="history">
+                {pastClasses.length === 0 ? (
+                  <Card className="text-center py-16 bg-gradient-to-br from-brand-cream/20 to-brand-mint/10 border-dashed border-2 border-brand-sage/20">
+                    <CardContent>
+                      <div className="max-w-md mx-auto">
+                        <div className="bg-brand-cream/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                          <Target className="h-8 w-8 text-brand-sage" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2 text-zinc-800">Aún no tienes historial</h3>
+                        <p className="text-zinc-600">¡Completa tu primera clase para ver tu progreso aquí!</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {pastClasses.map((classItem) => {
+                      let penaltyBadge = null
+                      if (
+                        classItem.package === 'SEMANA ILIMITADA' &&
+                        classItem.status === 'cancelled' &&
+                        classItem.cancelledAt
+                      ) {
+                        const classDateTime = new Date(`${classItem.date}T${classItem.time}:00`)
+                        const cancelledAt = new Date(classItem.cancelledAt)
+                        const diffMs = classDateTime.getTime() - cancelledAt.getTime()
+                        const diffHours = diffMs / (1000 * 60 * 60)
+                        if (diffHours < 12) {
+                          penaltyBadge = (
+                            <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
+                              Cancelada fuera de tiempo (penalización aplicada)
+                            </span>
+                          )
+                        }
+                      }
+                      return (
+                        <Card
+                          key={classItem.id}
+                          className="border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+                        >
+                          <div className="flex flex-col md:flex-row">
+                            <div className="flex-1 p-6">
+                              <div className="flex items-start justify-between mb-3">
+                                <div>
+                                  <h3 className="text-lg font-bold text-brand-cream mb-1">{classItem.className}</h3>
+                                  <p className="text-zinc-600 text-sm">Con {classItem.instructor}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge 
+                                    variant={
+                                      classItem.status === 'confirmed' ? 'default' :
+                                      classItem.status === 'cancelled' ? 'secondary' : 'outline'
+                                    }
+                                    className={
+                                      classItem.status === 'confirmed' 
+                                        ? "bg-brand-sage text-white hover:bg-brand-gray"
+                                        : classItem.status === 'cancelled'
+                                        ? "bg-gray-100 text-gray-700"
+                                        : "bg-brand-sage/10 text-brand-sage border-brand-sage/20"
+                                    }
+                                  >
+                                    {classItem.status === 'confirmed' ? 'Confirmada' :
+                                     classItem.status === 'cancelled' ? 'Cancelada' : 'Completada'}
+                                  </Badge>
+                                  {penaltyBadge}
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center text-zinc-700 text-sm">
+                                  <Calendar className="h-4 w-4 mr-3 text-brand-cream" />
+                                  <span>{classItem.dateFormatted || classItem.date}</span>
+                                </div>
+                                <div className="flex items-center text-zinc-700 text-sm">
+                                  <Clock className="h-4 w-4 mr-3 text-brand-cream" />
+                                  <span>
+                                    {classItem.time} • {classItem.duration}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </div>
         </div>
       </div>
-      {/* Modal de Confirmación de Cancelación */}
+
+      {/* Modal de Confirmación de Cancelación mejorado */}
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Cancelar Reserva</DialogTitle>
-            <DialogDescription>
-              ¿Estás seguro de que deseas cancelar tu reserva para la clase de {selectedClass?.className}?
+            <DialogTitle className="text-xl font-bold text-zinc-900">Cancelar Reserva</DialogTitle>
+            <DialogDescription className="text-zinc-600">
+              ¿Estás seguro de que deseas cancelar tu reserva para la clase de{" "}
+              <span className="font-semibold text-brand-sage">{selectedClass?.className}</span>?
             </DialogDescription>
           </DialogHeader>
+
           <div className="py-4">
             {selectedClass && (
-              <div className="space-y-2">
-                <div className="flex items-center text-zinc-700 text-xs sm:text-base">
-                  <Calendar className="h-4 w-4 mr-2 text-brand-gray" />
-                  <span>{selectedClass.date}</span>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-200">
+                <div className="flex items-center text-zinc-700">
+                  <Calendar className="h-4 w-4 mr-3 text-brand-sage" />
+                  <span className="font-medium">{selectedClass.date}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 text-xs sm:text-base">
-                  <Clock className="h-4 w-4 mr-2 text-brand-gray" />
-                  <span>
+                <div className="flex items-center text-zinc-700">
+                  <Clock className="h-4 w-4 mr-3 text-brand-sage" />
+                  <span className="font-medium">
                     {selectedClass.time} • {selectedClass.duration}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-zinc-500 mt-2">
-                  Recuerda que las cancelaciones deben realizarse con al menos 12 horas de anticipación para recuperar tu
-                  crédito.
-                </p>
+                {/* Mensaje especial para Clases Especiales */}
+                {selectedClass.isSpecial ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
+                    <div className="flex items-start gap-2">
+                      <Star className="h-4 w-4 text-amber-600 mt-0.5 shrink-0 fill-amber-600" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-amber-800">
+                          Clase Especial{selectedClass.specialPrice ? ` · $${selectedClass.specialPrice} MXN` : ""}
+                        </p>
+                        <p className="text-sm text-amber-700">
+                          Puedes cancelar esta clase, pero el pago <strong>no es reembolsable</strong>. Esta política aplica sin importar cuándo canceles.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : /* Mensaje especial para Semana Ilimitada */
+                selectedClass.package === 'SEMANA ILIMITADA' ? (() => {
+                  const classDateTime = new Date(`${selectedClass.date}T${selectedClass.time}:00`)
+                  const now = new Date()
+                  const diffMs = classDateTime.getTime() - now.getTime()
+                  const diffHours = diffMs / (1000 * 60 * 60)
+                  if (diffHours < 12) {
+                    return (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
+                        <p className="text-sm text-red-800">
+                          <strong>Importante:</strong> Cancelar con menos de 12 horas de anticipación implica perder esta clase y se aplicará una penalización (se cancelará tu siguiente clase de la semana).
+                        </p>
+                      </div>
+                    )
+                  } else {
+                    return (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
+                        <p className="text-sm text-amber-800">
+                          <strong>Política Semana Ilimitada:</strong> Si cancelas con más de 12 horas de anticipación, no hay penalización, pero tampoco reposición de clase.
+                        </p>
+                      </div>
+                    )
+                  }
+                })() : (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
+                    <p className="text-sm text-amber-800">
+                      <strong>Política de cancelación:</strong> Las cancelaciones deben realizarse con al menos 12 horas de anticipación para recuperar tu crédito.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setCancelDialogOpen(false)}>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-3">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto order-2 sm:order-1"
+              onClick={() => setCancelDialogOpen(false)}
+              disabled={isCancelling}
+            >
               Mantener Reserva
             </Button>
-            <Button className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white" onClick={confirmCancelClass}>
-              Confirmar Cancelación
+            <Button
+              className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white order-1 sm:order-2 shadow-sm"
+              onClick={confirmCancelClass}
+              disabled={isCancelling}
+            >
+              {isCancelling ? (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></span>
+                  Cancelando...
+                </>
+              ) : (
+                cancelResult === 'success' ? 'Cancelada' : cancelResult === 'error' ? 'Error' : 'Confirmar Cancelación'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

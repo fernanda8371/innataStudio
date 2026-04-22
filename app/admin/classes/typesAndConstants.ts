@@ -21,6 +21,15 @@ export interface Instructor {
 
 export interface ScheduledClass {
   id: number;
+  branch_id?: number | null;
+  isSpecial?: boolean | null;
+  specialPrice?: number | null;
+  specialMessage?: string | null;
+  branches?: {
+    id: number;
+    name: string;
+    address?: string | null;
+  } | null;
   date: string; // This will be a UTC date string like YYYY-MM-DDTHH:mm:ss.sssZ
   time: string; // This is also a date string, 1970-01-01THH:mm:00.000Z
   maxCapacity: number;
@@ -34,12 +43,20 @@ export interface ScheduledClass {
       lastName: string;
     };
   };
+  coInstructors?: Array<{
+    instructorId: number;
+    instructor: {
+      id: number;
+      user: { firstName: string; lastName: string };
+    };
+  }>;
   reservations: Array<{
     user: {
       firstName: string;
       lastName: string;
       email: string;
     };
+    status?: string;
   }>;
   waitlist: Array<{
     user: {
@@ -48,12 +65,13 @@ export interface ScheduledClass {
       email: string;
     };
   }>;
+  cancelledReservations?: number; // Añadido campo opcional para las cancelaciones
+  totalReservations: number; // Total non-cancelled reservations
 }
 
 export const timeSlots = [
-  "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
-  "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
-  "18:00", "19:00", "20:00", "21:00",
+  "06:00", "07:00", "08:00", "09:00","10:00",
+  "17:00", "18:00", "19:00", "20:00", "21:00",
 ];
 
 export const weekDays = [

@@ -104,21 +104,46 @@ export function filterClassesByDateAndTime(
 
 /**
  * Crea un Date object completo combinando fecha y hora de la clase
- * Mantiene las fechas en UTC para evitar problemas de zona horaria
+ * Acepta hora en formato 'HH:mm' o string ISO (por ejemplo, '1970-01-01T10:00:00.000Z')
+ * Siempre usa la fecha de la clase y la hora/minutos extraídos
  */
 export function createClassDateTime(dateString: string, timeString: string): Date {
-  const classDate = new Date(dateString)
-  const timeDate = new Date(timeString)
+  let hours = 0, minutes = 0;
+
+  if (timeString.includes('T')) {
+    const dateObj = new Date(timeString);
+    hours = dateObj.getUTCHours();
+    minutes = dateObj.getUTCMinutes();
+  } else if (/^\d{2}:\d{2}$/.test(timeString)) {
+    [hours, minutes] = timeString.split(':').map(Number);
+  }
+
+  const date = new Date(dateString);
+  
+  // FIXED: Las horas en BD son hora local México (UTC-6)
+  // Necesitamos agregar 6 horas para convertir a UTC
+  const localHour = hours
+  const utcHour = localHour + 6 // Convertir UTC-6 a UTC
+  
+  // Si la hora UTC resultante es >= 24, la clase es al día siguiente
+  const nextDay = utcHour >= 24
+  const finalHour = nextDay ? utcHour - 24 : utcHour
+  
+  // Crear la fecha base
+  let finalDate = new Date(date)
+  if (nextDay) {
+    finalDate.setUTCDate(finalDate.getUTCDate() + 1) // Agregar un día
+  }
   
   return new Date(Date.UTC(
-    classDate.getUTCFullYear(),
-    classDate.getUTCMonth(), 
-    classDate.getUTCDate(),
-    timeDate.getUTCHours(),
-    timeDate.getUTCMinutes(),
+    finalDate.getUTCFullYear(),
+    finalDate.getUTCMonth(),
+    finalDate.getUTCDate(),
+    finalHour,
+    minutes,
     0,
     0
-  ))
+  ));
 }
 
 /**
@@ -134,11 +159,11 @@ export function isClassReservable(dateString: string, timeString: string): boole
       return false
     }
     
-    // Si faltan menos de 30 minutos para la clase
-    const THIRTY_MIN = 30 * 60 * 1000
+    // Si faltan menos de 1 minuto para la clase
+    const ONE_MINUTE = 1 * 60 * 1000
     const timeDifference = classDateTime.getTime() - now.getTime()
     
-    if (timeDifference < THIRTY_MIN) {
+    if (timeDifference < ONE_MINUTE) {
       return false
     }
     

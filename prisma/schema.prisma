@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {$
+model User {
   user_id                 Int                      @id @default(autoincrement())
   firstName               String                   @map("first_name") @db.VarChar(50)
   lastName                String                   @map("last_name") @db.VarChar(50)
@@ -34,6 +34,7 @@ model User {$
   instructorProfile       Instructor[]
   notifications           notifications[]
   payments                Payment[]
+  checkedInReservations   Reservation[]            @relation("CheckedInBy")
   reservations            Reservation[]
   testimonials            Testimonial[]
   accountBalance          UserAccountBalance?
@@ -106,6 +107,7 @@ model Instructor {
   updatedAt        DateTime?        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
   user             User             @relation(fields: [userId], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
   scheduledClasses ScheduledClass[]
+  coTaughtClasses  ScheduledClassCoInstructor[]
 
   @@map("instructors")
 }
@@ -138,14 +140,31 @@ model ScheduledClass {
   status         String        @default("scheduled") @db.VarChar(20)
   createdAt      DateTime?     @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt      DateTime?     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  branch_id         Int?
+  isSpecial         Boolean   @default(false) @map("is_special")
+  specialPrice      Decimal?  @map("special_price") @db.Decimal(10, 2)
+  specialMessage    String?   @map("special_message") @db.VarChar(255)
   reservations   Reservation[]
+  branches       Branch?       @relation(fields: [branch_id], references: [id], onUpdate: NoAction, map: "fk_scheduled_classes_branch")
   classType      ClassType     @relation(fields: [classTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   instructor     Instructor    @relation(fields: [instructorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   waitlist       Waitlist[]
+  coInstructors  ScheduledClassCoInstructor[]
 
-  @@unique([date, time])
+  @@unique([date, time, branch_id])
   @@index([date], map: "idx_scheduled_classes_date")
+  @@index([branch_id], map: "idx_scheduled_classes_branch_id")
   @@map("scheduled_classes")
+}
+
+model ScheduledClassCoInstructor {
+  scheduledClassId Int            @map("scheduled_class_id")
+  instructorId     Int            @map("instructor_id")
+  scheduledClass   ScheduledClass @relation(fields: [scheduledClassId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  instructor       Instructor     @relation(fields: [instructorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([scheduledClassId, instructorId])
+  @@map("scheduled_class_co_instructors")
 }
 
 model Package {
@@ -159,7 +178,9 @@ model Package {
   stripePriceId       String?              @map("stripe_price_id") @db.VarChar(255)
   createdAt           DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt           DateTime?            @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  is_first_time_only  Boolean?             @default(false)
   cashPaymentRequests CashPaymentRequest[]
+  package_prices      package_prices[]
   userPackages        UserPackage[]
 
   @@map("packages")
@@ -178,39 +199,64 @@ model UserPackage {
   paymentStatus    String?       @default("pending") @map("payment_status") @db.VarChar(20)
   createdAt        DateTime?     @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt        DateTime?     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
-  payments         Payment[]
+  branch_id        Int?
+  relatedPayments  Payment[]     @relation("RelatedPackagePayments")
+  payments         Payment[]     @relation("UserPackagePayments")
   reservations     Reservation[]
+  branches         Branch?       @relation(fields: [branch_id], references: [id], onUpdate: NoAction, map: "fk_user_packages_branch")
   package          Package       @relation(fields: [packageId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   user             User          @relation(fields: [userId], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([expiryDate], map: "idx_user_packages_expiry_date")
   @@index([paymentStatus], map: "idx_user_packages_payment_status")
   @@index([userId], map: "idx_user_packages_user_id")
+  @@index([branch_id], map: "idx_user_packages_branch_id")
   @@map("user_packages")
 }
 
 model Reservation {
-  id                  Int                  @id @default(autoincrement()) @map("reservation_id")
-  userId              Int                  @map("user_id")
-  scheduledClassId    Int                  @map("scheduled_class_id")
-  userPackageId       Int?                 @map("user_package_id")
-  status              String               @default("pending") @db.VarChar(20)
-  paymentMethod       String?              @default("package") @map("payment_method") @db.VarChar(20)
-  cancellationReason  String?              @map("cancellation_reason")
-  cancelledAt         DateTime?            @map("cancelled_at") @db.Timestamp(6)
-  canRefund           Boolean?             @default(true) @map("can_refund")
-  createdAt           DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt           DateTime?            @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
-  balanceTransactions BalanceTransaction[]
-  scheduledClass      ScheduledClass       @relation(fields: [scheduledClassId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user                User                 @relation(fields: [userId], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
-  userPackage         UserPackage?         @relation(fields: [userPackageId], references: [id], onUpdate: NoAction)
+  id                              Int                  @id @default(autoincrement()) @map("reservation_id")
+  userId                          Int                  @map("user_id")
+  scheduledClassId                Int                  @map("scheduled_class_id")
+  userPackageId                   Int?                 @map("user_package_id")
+  status                          String               @default("pending") @db.VarChar(20)
+  paymentMethod                   String?              @default("package") @map("payment_method") @db.VarChar(20)
+  cancellationReason              String?              @map("cancellation_reason")
+  cancelledAt                     DateTime?            @map("cancelled_at") @db.Timestamp(6)
+  canRefund                       Boolean?             @default(true) @map("can_refund")
+  createdAt                       DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                       DateTime?            @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  bikeNumber                      Int?                 @map("bike_number")
+  label                           String?              @db.VarChar(50)
+  checked_in                      Boolean?             @default(false)
+  checked_in_at                   DateTime?            @db.Timestamp(6)
+  checked_in_by                   Int?
+  lateCancellationPenaltyNotified Boolean?             @default(false)
+  balanceTransactions             BalanceTransaction[]
+  checked_in_by_user              User?                @relation("CheckedInBy", fields: [checked_in_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  scheduledClass                  ScheduledClass       @relation(fields: [scheduledClassId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user                            User                 @relation(fields: [userId], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  userPackage                     UserPackage?         @relation(fields: [userPackageId], references: [id], onUpdate: NoAction)
 
-  @@unique([userId, scheduledClassId])
+  @@unique([scheduledClassId, bikeNumber])
   @@index([scheduledClassId], map: "idx_reservations_scheduled_class_id")
   @@index([status], map: "idx_reservations_status")
   @@index([userId], map: "idx_reservations_user_id")
+  @@index([bikeNumber], map: "idx_reservations_bike_number")
+  @@index([userId, scheduledClassId], map: "idx_reservations_user_class")
+  @@index([checked_in_by], map: "idx_reservations_checked_in_by")
   @@map("reservations")
+}
+
+model SystemConfiguration {
+  id          Int       @id @default(autoincrement())
+  key         String    @unique @db.VarChar(255)
+  value       String
+  description String?
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@map("system_configuration")
 }
 
 model Payment {
@@ -229,13 +275,16 @@ model Payment {
   paymentDate           DateTime             @default(now()) @map("payment_date") @db.Timestamp(6)
   createdAt             DateTime?            @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt             DateTime?            @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  relatedUserPackageId  Int?                 @map("related_user_package_id")
   balanceTransactions   BalanceTransaction[]
+  relatedUserPackage    UserPackage?         @relation("RelatedPackagePayments", fields: [relatedUserPackageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user                  User                 @relation(fields: [userId], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
-  userPackage           UserPackage?         @relation(fields: [userPackageId], references: [id], onUpdate: NoAction)
+  userPackage           UserPackage?         @relation("UserPackagePayments", fields: [userPackageId], references: [id], onUpdate: NoAction)
 
   @@index([status], map: "idx_payments_status")
   @@index([stripePaymentIntentId], map: "idx_payments_stripe_payment_intent_id")
   @@index([userId], map: "idx_payments_user_id")
+  @@index([relatedUserPackageId], map: "idx_payments_user_package_id")
   @@map("payments")
 }
 
@@ -314,4 +363,31 @@ model notifications {
 
   @@index([is_read], map: "idx_notifications_is_read")
   @@index([user_id], map: "idx_notifications_user_id")
+}
+
+model Branch {
+  id                Int              @id @default(autoincrement())
+  name              String           @db.VarChar(100)
+  address           String?          @db.VarChar(255)
+  isActive          Boolean?         @default(true) @map("is_active")
+  phone             String?          @db.VarChar(20)
+  schedule          String?          @db.VarChar(255)
+  package_prices    package_prices[]
+  scheduled_classes ScheduledClass[]
+  user_packages     UserPackage[]
+
+  @@map("branches")
+}
+
+model package_prices {
+  package_price_id Int      @id @default(autoincrement())
+  package_id       Int
+  branch_id        Int
+  price            Decimal  @db.Decimal(10, 2)
+  stripe_price_id  String?  @db.VarChar(255)
+  is_active        Boolean? @default(true)
+  branches         Branch   @relation(fields: [branch_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_branch")
+  packages         Package  @relation(fields: [package_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_package")
+
+  @@unique([package_id, branch_id], map: "uq_package_branch")
 }

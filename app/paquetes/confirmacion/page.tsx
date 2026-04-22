@@ -13,6 +13,8 @@ interface Package {
   classCount: number;
   validityDays: number;
   description: string;
+  branchId?: number;
+  branchName?: string;
 }
 
 function ConfirmationContent() {
@@ -23,11 +25,26 @@ function ConfirmationContent() {
 
   const sessionId = searchParams.get('session_id');
   const packageId = searchParams.get('package_id');
+  const branchId = searchParams.get('branch_id');
 
   useEffect(() => {
     const fetchPackageData = async () => {
       try {
         if (packageId) {
+          if (branchId) {
+            // Usar el endpoint por sucursal para mostrar el precio correcto
+            const response = await fetch(`/api/packages/by-branch/${branchId}`);
+            if (response.ok) {
+              const allPackages = await response.json();
+              const pkg = allPackages.find((p: any) => p.id === parseInt(packageId));
+              if (pkg) {
+                setPackageData(pkg);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+          // Fallback al endpoint genérico
           const response = await fetch(`/api/packages/${packageId}`);
           if (response.ok) {
             const data = await response.json();
@@ -42,14 +59,14 @@ function ConfirmationContent() {
     };
 
     fetchPackageData();
-  }, [packageId]);
+  }, [packageId, branchId]);
 
   const handleGoToAccount = () => {
     router.push('/mi-cuenta');
   };
 
   const handleBookClass = () => {
-    router.push('/reservas');
+    router.push('/reservar');
   };
 
   const handleGoHome = () => {
@@ -122,6 +139,14 @@ function ConfirmationContent() {
                   <span className="text-gray-600">Válido por:</span>
                   <span className="font-semibold">{packageData.validityDays} días</span>
                 </div>
+
+                {packageData.branchName && (
+                  <div className="flex items-center space-x-2 col-span-2">
+                    <Package className="h-4 w-4 text-gray-600" />
+                    <span className="text-gray-600">Sucursal:</span>
+                    <span className="font-semibold">{packageData.branchName}</span>
+                  </div>
+                )}
               </div>
               
               <p className="text-gray-600 text-sm">
@@ -149,7 +174,7 @@ function ConfirmationContent() {
                 onClick={handleBookClass}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
-                Reservar mi primera clase
+                Reservar clase
               </Button>
               
               <Button 

@@ -1,7 +1,17 @@
+"use client"
+
+import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Instagram, Facebook } from "lucide-react"
 
 export function SiteFooter() {
+  const pathname = usePathname()
+
+  // No renderizar el footer en las páginas de admin y selección de sucursal
+  if (pathname?.startsWith("/admin") || pathname === "/seleccionar-sucursal") {
+    return null
+  }
+
   return (
     <footer className="bg-custom-cream text-zinc-800 py-12">
       <div className="container px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -66,6 +76,8 @@ export function SiteFooter() {
             <li>Lunes a Viernes:</li>
             <li>| 7:00-8:00AM | 8:00-9:00AM |</li>
             <li>| 6:00-7:00PM | 7:00-8:00PM |</li>
+            <li>| 8:00-9:00PM |</li>
+
             <li>Sábado:</li>
             <li>| 8:00-9:00AM | 9:00-10:00AM |</li>
           </ul>

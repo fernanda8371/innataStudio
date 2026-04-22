@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 // GET - Obtener detalles de un usuario específico
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación (admin)
@@ -23,7 +23,8 @@ export async function GET(
       return NextResponse.json({ error: "No tiene permisos de administrador" }, { status: 403 });
     }
 
-    const userId = parseInt(params.id);
+    const resolvedParams = await params;
+    const userId = parseInt(resolvedParams.id);
     if (isNaN(userId)) {
       return NextResponse.json({ error: "ID de usuario no válido" }, { status: 400 });
     }
@@ -62,6 +63,19 @@ export async function GET(
       pkg.isActive && pkg.expiryDate >= new Date()
     );
 
+    // Obtener historial de compras/paquetes
+    const allPackages = user.userPackages.map(pkg => ({
+      id: pkg.id,
+      name: pkg.package.name,
+      purchaseDate: pkg.purchaseDate.toISOString().split('T')[0],
+      expiryDate: pkg.expiryDate.toISOString().split('T')[0],
+      totalClasses: pkg.package.classCount || 0,
+      classesRemaining: pkg.classesRemaining,
+      paymentStatus: pkg.paymentStatus,
+      isActive: pkg.isActive && pkg.expiryDate >= new Date(),
+      amount: pkg.package.price ? Number(pkg.package.price) : 0
+    }));
+
     const formattedUser = {
       id: user.user_id,
       firstName: user.firstName,
@@ -72,11 +86,6 @@ export async function GET(
       lastVisitDate: user.lastVisitDate ? user.lastVisitDate.toISOString().split('T')[0] : null,
       status: user.status,
       role: user.role,
-      balance: {
-        totalClassesPurchased: user.accountBalance?.totalClassesPurchased || 0,
-        classesUsed: user.accountBalance?.classesUsed || 0,
-        classesAvailable: user.accountBalance?.classesAvailable || 0
-      },
       activePackages: activePackages.map(pkg => ({
         id: pkg.id,
         name: pkg.package.name,
@@ -84,6 +93,7 @@ export async function GET(
         expiryDate: pkg.expiryDate.toISOString().split('T')[0],
         paymentStatus: pkg.paymentStatus
       })),
+      purchaseHistory: allPackages,
       recentReservations: user.reservations.map(res => ({
         id: res.id,
         className: res.scheduledClass.classType.name,
@@ -102,7 +112,7 @@ export async function GET(
 // PUT - Actualizar usuario
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación (admin)
@@ -116,7 +126,8 @@ export async function PUT(
       return NextResponse.json({ error: "No tiene permisos de administrador" }, { status: 403 });
     }
 
-    const userId = parseInt(params.id);
+    const resolvedParams = await params;
+    const userId = parseInt(resolvedParams.id);
     if (isNaN(userId)) {
       return NextResponse.json({ error: "ID de usuario no válido" }, { status: 400 });
     }
@@ -185,7 +196,7 @@ export async function PUT(
 // DELETE - Eliminar usuario (soft delete)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación (admin)
@@ -199,7 +210,8 @@ export async function DELETE(
       return NextResponse.json({ error: "No tiene permisos de administrador" }, { status: 403 });
     }
 
-    const userId = parseInt(params.id);
+    const resolvedParams = await params;
+    const userId = parseInt(resolvedParams.id);
     if (isNaN(userId)) {
       return NextResponse.json({ error: "ID de usuario no válido" }, { status: 400 });
     }

@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { verifyToken } from "@/lib/jwt";
+import { sendCancellationConfirmationEmail } from "@/lib/email";
+import { formatInTimeZone, format } from 'date-fns-tz';
+import { es } from 'date-fns/locale';
 
 const prisma = new PrismaClient();
 
@@ -21,7 +24,9 @@ export async function POST(
       return NextResponse.json({ error: "No tiene permisos de administrador" }, { status: 403 });
     }
 
-    const reservationId = parseInt(params.id);
+    // FIXED: Await params for Next.js 15+
+    const resolvedParams = await params;
+    const reservationId = parseInt(resolvedParams.id);
     if (isNaN(reservationId)) {
       return NextResponse.json({ error: "ID de reservación no válido" }, { status: 400 });
     }
@@ -30,8 +35,38 @@ export async function POST(
     const reservation = await prisma.reservation.findUnique({
       where: { id: reservationId },
       include: {
-        scheduledClass: true,
-        userPackage: true
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        scheduledClass: {
+          include: {
+            classType: true,
+            branches: {
+              select: {
+                name: true
+              }
+            },
+            instructor: {
+              include: {
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        userPackage: {
+          include: {
+            package: true
+          }
+        }
       }
     });
 
@@ -45,7 +80,11 @@ export async function POST(
 
     // Obtener datos adicionales del cuerpo de la solicitud
     const body = await request.json();
-    const { reason = "Cancelado por administrador" } = body;
+    const { reason = "Cancelado por administrador", sendEmail = true } = body;
+
+    // FIXED: Determine if it's a Semana Ilimitada package
+    const isUnlimitedWeek = reservation.userPackage?.package?.id === 3 || 
+                           reservation.userPackage?.package?.name?.toLowerCase().includes('semana ilimitada');
 
     // Iniciar transacción para asegurar que todas las operaciones se completen o ninguna
     const result = await prisma.$transaction(async (prisma) => {
@@ -56,11 +95,12 @@ export async function POST(
           status: "cancelled",
           cancellationReason: reason,
           cancelledAt: new Date(),
-          canRefund: true
+          canRefund: false, // Admin cancellations do not automatically refund
+          bikeNumber: null // Set bike_number to null on cancellation
         }
       });
 
-      // 2. Incrementar espacios disponibles en la clase programada
+      // 2. Incrementar espacios disponibles en la clase
       await prisma.scheduledClass.update({
         where: { id: reservation.scheduledClassId },
         data: {
@@ -70,56 +110,52 @@ export async function POST(
         }
       });
 
-      // 3. Si la reservación usó un paquete de clases, devolver la clase al balance
-      if (reservation.userPackageId) {
+      // 3. Handle package update (decrement classesUsed if applicable, but no refund)
+      if (reservation.userPackageId && reservation.status !== 'pending') { // Only decrement if it was a confirmed/used class
         await prisma.userPackage.update({
           where: { id: reservation.userPackageId },
           data: {
-            classesRemaining: {
-              increment: 1
-            },
             classesUsed: {
               decrement: 1
             }
+            // No increment of classesRemaining, as per "no refund" rule for admin cancellations
           }
         });
-
-        // 4. Actualizar el balance de clases del usuario
+        // Also update UserAccountBalance if it was a used class from a package
+        // We only decrement classesUsed here, not increment classesAvailable
         await prisma.userAccountBalance.update({
           where: { userId: reservation.userId },
           data: {
-            classesAvailable: {
-              increment: 1
-            },
             classesUsed: {
               decrement: 1
             }
-          }
-        });
-
-        // 5. Registrar la transacción en el balance del usuario
-        await prisma.balanceTransaction.create({
-          data: {
-            userId: reservation.userId,
-            type: "refund",
-            amount: 1, // Representa una clase devuelta
-            description: `Reembolso por cancelación: ${reason}`,
-            relatedReservationId: reservationId,
-            createdBy: parseInt(payload.userId)
+            // No increment of classesAvailable
           }
         });
       }
+      // The `canRefund` field in reservation update is already set to `false` (or `!isUnlimitedWeek` which becomes `false` if we treat all admin cancels as non-refundable)
+      // For admin cancellations, we explicitly state no automatic refunds.
+      // The `canRefund` field in the reservation table might be used by other processes,
+      // but for this specific admin cancellation flow, we are ensuring no class credit is returned.
+      // Let's ensure `canRefund` is explicitly false for admin cancellations.
+      // This is already handled by the initial update: data: { status: "cancelled", ..., canRefund: false } if we assume isUnlimitedWeek logic applies to all admin cancels.
+      // To be more explicit and enforce "no refund for admin cancellations" globally within this endpoint:
+      // The `updatedReservation` data block should ensure `canRefund` is set to `false`.
+      // The initial update `prisma.reservation.update` already includes:
+      // `canRefund: !isUnlimitedWeek,`
+      // We will change this to `canRefund: false,` to make it universal for admin cancellations.
 
-      // 6. Notificar al usuario
+      // 4. Notificar al usuario
       await prisma.notifications.create({
         data: {
           user_id: reservation.userId,
           type: "reservation_cancelled",
-          title: "Reservación cancelada",
-          message: `Tu reservación ha sido cancelada. Motivo: ${reason}`,
+          title: "Reservación cancelada por administrador",
+          message: `Tu reservación para ${reservation.scheduledClass.classType.name} el ${formatInTimeZone(reservation.scheduledClass.date, 'America/Mexico_City', "dd/MM/yyyy", { locale: es })} a las ${formatInTimeZone(reservation.scheduledClass.time, 'America/Mexico_City', "HH:mm", { locale: es })} ha sido cancelada por un administrador. Motivo: ${reason}. Esta cancelación no genera un reembolso automático de la clase.`,
           data: {
             reservationId: reservationId,
-            refunded: reservation.userPackageId ? true : false
+            refunded: false, // Explicitly false for admin cancellations
+            isUnlimitedWeek: isUnlimitedWeek // Still useful to know the original package type for context
           }
         }
       });
@@ -127,15 +163,60 @@ export async function POST(
       return updatedReservation;
     });
 
+
+
+      if (sendEmail && reservation.user?.email) {
+      try {
+        const scheduledClassDate = reservation.scheduledClass.date;
+        const scheduledClassTimeSource = reservation.scheduledClass.time;
+        
+        const year = scheduledClassDate.getUTCFullYear();
+        const month = scheduledClassDate.getUTCMonth();
+        const day = scheduledClassDate.getUTCDate();
+        
+        const intendedLocalHour = scheduledClassTimeSource.getUTCHours();
+        const intendedLocalMinute = scheduledClassTimeSource.getUTCMinutes();
+        
+        const hourStr = intendedLocalHour.toString().padStart(2, '0');
+        const minuteStr = intendedLocalMinute.toString().padStart(2, '0');
+        const formattedTimeEmail = `${hourStr}:${minuteStr}`;
+        
+        // Use UTC-based formatting to avoid timezone issues
+        const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                       'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        
+        const formattedDateEmail = `${day.toString().padStart(2, '0')} de ${months[month]} de ${year}`;
+        
+        const emailDetails = {
+          className: reservation.scheduledClass.classType.name,
+          date: formattedDateEmail,
+          time: formattedTimeEmail,
+          branchName: reservation.scheduledClass.branches?.name || undefined,
+          isRefundable: false, // Explicitly false for admin cancellations
+          packageName: reservation.userPackage?.package?.name
+        };
+        
+        await sendCancellationConfirmationEmail(
+          reservation.user.email,
+          reservation.user.firstName,
+          emailDetails
+        );
+      } catch (emailError) {
+        console.error("Error preparing cancellation email (admin cancel):", emailError);
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Reservación cancelada con éxito",
+      message: "Reservación cancelada por administrador. No se ha procesado un reembolso automático de la clase.",
       reservation: {
         id: result.id,
         status: result.status,
         cancellationReason: result.cancellationReason,
         cancelledAt: result.cancelledAt
-      }
+      },
+      isUnlimitedWeek: isUnlimitedWeek, // Keep for informational purposes
+      emailSent: sendEmail
     });
   } catch (error) {
     console.error("Error al cancelar reservación:", error);

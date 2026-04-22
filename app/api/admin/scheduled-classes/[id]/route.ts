@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
 import { verifyToken } from "@/lib/jwt"
+import { getBranchBikeCapacity, SPECIAL_CLASS_BIKE_LAYOUT } from "@/lib/config/branch-bike-layouts"
 
 const prisma = new PrismaClient()
 
@@ -46,11 +47,36 @@ export async function PUT(
     const { id } = resolvedParams;
     const body = await request.json()
 
-    if (!body.classTypeId || !body.instructorId || !body.date || !body.time) {
+    if (!body.classTypeId || !body.instructorId || !body.date || !body.time || !body.branchId) {
       return NextResponse.json(
-        { error: "Todos los campos son obligatorios" },
+        { error: "Todos los campos son obligatorios, incluyendo sucursal" },
         { status: 400 }
       )
+    }
+
+    // Parsear co-instructores (excluir el instructor principal si aparece)
+    const coInstructorIdsParsed: number[] = Array.isArray(body.coInstructorIds)
+      ? body.coInstructorIds.map((id: any) => Number.parseInt(id)).filter((id: number) => !isNaN(id) && id !== parseInt(body.instructorId))
+      : []
+
+    if (body.isSpecial === true) {
+      const parsedPrice = parseFloat(body.specialPrice)
+      if (!body.specialPrice || isNaN(parsedPrice) || parsedPrice <= 0) {
+        return NextResponse.json({ error: "Las clases especiales requieren un precio mayor a 0" }, { status: 400 })
+      }
+      if (body.specialMessage && body.specialMessage.length > 255) {
+        return NextResponse.json({ error: "El mensaje no puede exceder 255 caracteres" }, { status: 400 })
+      }
+    }
+
+    const branchIdInt = parseInt(String(body.branchId), 10)
+    if (!Number.isInteger(branchIdInt) || branchIdInt <= 0 || String(branchIdInt) !== String(body.branchId).trim()) {
+      return NextResponse.json({ error: "branchId debe ser un entero positivo" }, { status: 400 })
+    }
+
+    const branchExists = await prisma.branch.findUnique({ where: { id: branchIdInt } })
+    if (!branchExists) {
+      return NextResponse.json({ error: "Sucursal no encontrada" }, { status: 404 })
     }
 
     const existingClass = await prisma.scheduledClass.findUnique({
@@ -70,6 +96,7 @@ export async function PUT(
         date: utcDate,
         time: classTime,
         instructorId: parseInt(body.instructorId),
+        branch_id: branchIdInt,
         status: "scheduled",
       },
     })
@@ -88,12 +115,24 @@ export async function PUT(
       },
     })
 
-    const newMax = parseInt(body.maxCapacity)
+    const defaultCapacity = body.isSpecial === true
+      ? SPECIAL_CLASS_BIKE_LAYOUT.bikeCount
+      : getBranchBikeCapacity(branchIdInt)
+    const parsedMaxCapacity = body.maxCapacity ? parseInt(body.maxCapacity, 10) : NaN
+    const newMax = (!isNaN(parsedMaxCapacity) && parsedMaxCapacity > 0)
+      ? parsedMaxCapacity
+      : defaultCapacity
+
     if (confirmedReservations > newMax) {
       return NextResponse.json({
-        error: "Hay más reservas confirmadas que la nueva capacidad",
+        error: `Hay ${confirmedReservations} reservas confirmadas, la capacidad no puede ser menor`,
       }, { status: 400 })
     }
+
+    // Reemplazar co-instructores: borrar existentes y crear los nuevos
+    await prisma.scheduledClassCoInstructor.deleteMany({
+      where: { scheduledClassId: parseInt(id) },
+    })
 
     const updatedClass = await prisma.scheduledClass.update({
       where: { id: parseInt(id) },
@@ -102,17 +141,28 @@ export async function PUT(
         instructorId: parseInt(body.instructorId),
         date: utcDate,
         time: classTime,
+        branch_id: branchIdInt,
         maxCapacity: newMax,
         availableSpots: newMax - confirmedReservations,
+        isSpecial: body.isSpecial === true,
+        specialPrice: body.isSpecial && body.specialPrice ? parseFloat(body.specialPrice) : null,
+        specialMessage: body.isSpecial && body.specialMessage ? body.specialMessage : null,
+        coInstructors: coInstructorIdsParsed.length > 0 ? {
+          create: coInstructorIdsParsed.map((coId) => ({ instructorId: coId })),
+        } : undefined,
       },
       include: {
         classType: true,
         instructor: {
           include: {
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
+            user: { select: { firstName: true, lastName: true } },
+          },
+        },
+        coInstructors: {
+          include: {
+            instructor: {
+              include: {
+                user: { select: { firstName: true, lastName: true } },
               },
             },
           },
@@ -120,9 +170,7 @@ export async function PUT(
         reservations: {
           where: { status: "confirmed" },
           include: {
-            user: {
-              select: { firstName: true, lastName: true, email: true },
-            },
+            user: { select: { firstName: true, lastName: true, email: true } },
           },
         },
       },
@@ -159,7 +207,11 @@ export async function DELETE(
     const existingClass = await prisma.scheduledClass.findUnique({
       where: { id: parseInt(id) },
       include: {
-        reservations: true,
+        reservations: {
+          where: {
+            status: { not: "cancelled" },
+          },
+        },
       },
     })
 
@@ -170,7 +222,7 @@ export async function DELETE(
       )
     }
 
-    // Verificar si hay reservas confirmadas
+    // Verificar si hay reservas activas (no canceladas)
     if (existingClass.reservations.length > 0) {
       return NextResponse.json(
         { error: "No se puede eliminar una clase con reservas confirmadas" },
@@ -178,7 +230,21 @@ export async function DELETE(
       )
     }
 
-    // Eliminar la clase
+    // Obtener todos los IDs de reservaciones (incluyendo canceladas) para limpiar balance transactions
+    const allReservations = await prisma.reservation.findMany({
+      where: { scheduledClassId: parseInt(id) },
+      select: { id: true },
+    })
+    const reservationIds = allReservations.map((r) => r.id)
+
+    // Eliminar balance transactions ligadas a esas reservaciones (onDelete: NoAction)
+    if (reservationIds.length > 0) {
+      await prisma.balanceTransaction.deleteMany({
+        where: { relatedReservationId: { in: reservationIds } },
+      })
+    }
+
+    // Eliminar la clase (cascade elimina reservaciones y waitlist)
     await prisma.scheduledClass.delete({
       where: { id: parseInt(id) },
     })

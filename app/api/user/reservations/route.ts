@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
 import { verifyToken } from "@/lib/jwt"
-import { formatDateFromDB, formatTimeFromDB, formatDateToSpanish } from "@/lib/utils/date"
+import { formatDateFromDB, formatTimeFromDB, formatDateToSpanish, createClassDateTime } from "@/lib/utils/date"
 
 const prisma = new PrismaClient()
 
@@ -21,26 +21,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status") // upcoming/past
     
-    const today = new Date()
-    today.setUTCHours(0, 0, 0, 0)
+    const now = new Date()
     
-    // Definir filtro para las reservaciones según el status
-    const dateFilter = status === "past" 
-      ? { lt: today } // Para reservaciones pasadas
-      : { gte: today } // Para reservaciones futuras
-
-    // Obtener las reservaciones del usuario
-    const reservations = await prisma.reservation.findMany({
+    // Obtener TODAS las reservaciones del usuario primero
+    const allReservations = await prisma.reservation.findMany({
       where: { 
-        userId,
-        scheduledClass: {
-          date: dateFilter
-        }
+        userId
       },
       include: {
         scheduledClass: {
           include: {
             classType: true,
+            branches: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
             instructor: {
               include: {
                 user: {
@@ -61,13 +58,42 @@ export async function GET(request: NextRequest) {
       },
       orderBy: {
         scheduledClass: {
-          date: status === "past" ? 'desc' : 'asc'
+          date: 'asc'
         }
       }
     })
 
+    // Filtrar las reservaciones según fecha Y hora combinadas
+    const filteredReservations = allReservations.filter(res => {
+      const classDateTime = createClassDateTime(
+        res.scheduledClass.date.toISOString(), 
+        res.scheduledClass.time.toISOString()
+      )
+      
+      if (status === "past") {
+        return classDateTime < now
+      } else {
+        return classDateTime >= now
+      }
+    })
+
+    // Ordenar según el status
+    if (status === "past") {
+      filteredReservations.sort((a, b) => {
+        const dateTimeA = createClassDateTime(a.scheduledClass.date.toISOString(), a.scheduledClass.time.toISOString())
+        const dateTimeB = createClassDateTime(b.scheduledClass.date.toISOString(), b.scheduledClass.time.toISOString())
+        return dateTimeB.getTime() - dateTimeA.getTime() // Más recientes primero
+      })
+    } else {
+      filteredReservations.sort((a, b) => {
+        const dateTimeA = createClassDateTime(a.scheduledClass.date.toISOString(), a.scheduledClass.time.toISOString())
+        const dateTimeB = createClassDateTime(b.scheduledClass.date.toISOString(), b.scheduledClass.time.toISOString())
+        return dateTimeA.getTime() - dateTimeB.getTime() // Más próximas primero
+      })
+    }
+
     // Formatear los datos para la respuesta usando las utilidades corregidas
-    const formattedReservations = reservations.map(res => {
+    const formattedReservations = filteredReservations.map(res => {
       const instructorName = `${res.scheduledClass.instructor.user.firstName} ${res.scheduledClass.instructor.user.lastName}`
       
       return {
@@ -78,7 +104,7 @@ export async function GET(request: NextRequest) {
         dateFormatted: formatDateToSpanish(res.scheduledClass.date.toISOString()),
         time: formatTimeFromDB(res.scheduledClass.time.toISOString()),
         duration: `${res.scheduledClass.classType.duration} min`,
-        location: "Sala Principal",
+        location: res.scheduledClass.branches?.name || "Sucursal no definida",
         status: res.status,
         canCancel: status !== "past" && res.status !== "cancelled",
         package: res.userPackage?.package.name || "Pase individual",
@@ -86,7 +112,10 @@ export async function GET(request: NextRequest) {
         category: res.scheduledClass.classType.category || "",
         intensity: res.scheduledClass.classType.intensity || "",
         capacity: res.scheduledClass.maxCapacity || 0,
-        description: res.scheduledClass.classType.description || ""
+        description: res.scheduledClass.classType.description || "",
+        bikeNumber: res.bikeNumber ?? null,
+        isSpecial: res.scheduledClass.isSpecial ?? false,
+        specialPrice: res.scheduledClass.specialPrice ?? null
       }
     })
 

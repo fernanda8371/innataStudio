@@ -7,6 +7,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CalendarDays, CreditCard, BarChart3, Users, Settings, Menu, X, LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/hooks/useAuth"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function AdminLayout({
   children,
@@ -15,24 +17,25 @@ export default function AdminLayout({
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const router = useRouter()
+  const { logout } = useAuth()
+  const { toast } = useToast()
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      toast({
+        title: "Cerrando sesión...",
+        description: "Por favor espera.",
+        variant: "default",
       })
-
-      if (response.ok) {
-        // Redirigir al login después del logout exitoso
-        router.push("/login")
-      } else {
-        console.error("Error al cerrar sesión")
-      }
+      await logout()
+      // No necesitamos redirección manual, el hook ya lo maneja
     } catch (error) {
-      console.error("Error al cerrar sesión:", error)
+      console.error("Error durante logout:", error)
+      toast({
+        title: "Error",
+        description: "Hubo un problema al cerrar sesión.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -68,35 +71,35 @@ export default function AdminLayout({
         <nav className="space-y-2">
           <Link
             href="/admin/reservations"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-gray-400/10 rounded-md"
           >
             <CalendarDays className="h-5 w-5" />
             <span>Reservaciones</span>
           </Link>
           <Link
             href="/admin/payments"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-gray-400/10 rounded-md"
           >
             <CreditCard className="h-5 w-5" />
             <span>Pagos</span>
           </Link>
           <Link
             href="/admin/classes"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-gray-400/10 rounded-md"
           >
             <BarChart3 className="h-5 w-5" />
             <span>Clases y Horarios</span>
           </Link>
           <Link
             href="/admin/users"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-gray-400/10 rounded-md"
           >
             <Users className="h-5 w-5" />
             <span>Usuarios</span>
           </Link>
           <Link
             href="/admin/settings"
-            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-[#FCF259]/10 rounded-md"
+            className="flex items-center gap-3 px-3 py-2 text-zinc-700 hover:text-[#4A102A] hover:bg-gray-400/10 rounded-md"
           >
             <Settings className="h-5 w-5" />
             <span>Configuración</span>
@@ -116,7 +119,7 @@ export default function AdminLayout({
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <header className="sticky top-0 z-10 bg-white border-b border-gray-100 p-4">
+        <header className="sticky top-0 z-10 bg-white border-b border-gray-100 ">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button

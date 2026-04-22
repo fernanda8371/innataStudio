@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
 import { verifyToken } from "@/lib/jwt"
+import { getBranchBikeCapacity, SPECIAL_CLASS_BIKE_LAYOUT } from "@/lib/config/branch-bike-layouts"
 
 const prisma = new PrismaClient()
 
@@ -25,63 +26,79 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
+    const branchId = searchParams.get("branchId")
+    const isSpecialParam = searchParams.get("isSpecial")
 
-    let queryDateObject = {};
-    if (startDate && endDate) {
-      const queryStartDate = new Date(startDate + "T00:00:00.000Z");
-      const queryEndDate = new Date(endDate + "T23:59:59.999Z");
-      queryDateObject = {
-        date: {
-          gte: queryStartDate,
-          lte: queryEndDate,
-        },
-      };
+    const whereClause: any = {};
+    if (startDate || endDate) {
+      const dateFilter: any = {}
+      if (startDate) dateFilter.gte = new Date(startDate + "T00:00:00.000Z")
+      if (endDate) dateFilter.lte = new Date(endDate + "T23:59:59.999Z")
+      whereClause.date = dateFilter
+    }
+    if (branchId) {
+      const branchIdInt = parseInt(branchId, 10);
+      if (!isNaN(branchIdInt)) {
+        whereClause.branch_id = branchIdInt;
+      }
+    }
+    if (isSpecialParam === "true") {
+      whereClause.isSpecial = true;
     }
 
-    const scheduledClasses = await prisma.scheduledClass.findMany({
-      where: {
-        ...queryDateObject,
-      },
+    const scheduledClassesRaw = await prisma.scheduledClass.findMany({
+      where: whereClause,
       include: {
         classType: true,
         instructor: {
           include: {
             user: {
-              select: {
-                firstName: true,
-                lastName: true,
+              select: { firstName: true, lastName: true },
+            },
+          },
+        },
+        coInstructors: {
+          include: {
+            instructor: {
+              include: {
+                user: { select: { firstName: true, lastName: true } },
               },
             },
           },
         },
         reservations: {
-          where: {
-            status: "confirmed",
-          },
           include: {
             user: {
-              select: {
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
+              select: { firstName: true, lastName: true, email: true },
             },
           },
         },
         waitlist: {
           include: {
             user: {
-              select: {
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
+              select: { firstName: true, lastName: true, email: true },
             },
           },
+        },
+        branches: {
+          select: { id: true, name: true, address: true },
         },
       },
       orderBy: [{ date: "asc" }, { time: "asc" }],
     })
+
+    // Calculate totalReservations, cancelledReservations, availableSpots for each class
+    const scheduledClasses = scheduledClassesRaw.map(cls => {
+      const totalReservations = cls.reservations.filter(r => r.status !== 'cancelled').length;
+      const cancelledReservations = cls.reservations.filter(r => r.status === 'cancelled').length;
+      const availableSpots = cls.maxCapacity - totalReservations;
+      return {
+        ...cls,
+        totalReservations,
+        cancelledReservations,
+        availableSpots,
+      };
+    });
 
     return NextResponse.json(scheduledClasses)
   } catch (error) {
@@ -111,11 +128,35 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { classTypeId, instructorId, date, time, maxCapacity } = body
+    const { classTypeId, instructorId, date, time, branchId, isSpecial, specialPrice, specialMessage, maxCapacity, coInstructorIds } = body
 
-    console.log("Creating scheduled class with data:", body)
+    if (!branchId) {
+      return NextResponse.json({ error: "branchId es requerido" }, { status: 400 })
+    }
 
-    // Validar que no haya solapamiento de horarios
+    const STRIPE_MIN_MXN = 10
+    if (isSpecial === true) {
+      const parsedPrice = parseFloat(specialPrice)
+      if (!specialPrice || isNaN(parsedPrice) || parsedPrice < STRIPE_MIN_MXN) {
+        return NextResponse.json({ error: `El precio mínimo para clases especiales es $${STRIPE_MIN_MXN} MXN (mínimo aceptado por Stripe)` }, { status: 400 })
+      }
+      if (specialMessage && specialMessage.length > 255) {
+        return NextResponse.json({ error: "El mensaje no puede exceder 255 caracteres" }, { status: 400 })
+      }
+    }
+
+    const branchIdInt = parseInt(branchId, 10)
+    if (!Number.isInteger(branchIdInt) || branchIdInt <= 0 || String(branchIdInt) !== String(branchId).trim()) {
+      return NextResponse.json({ error: "branchId debe ser un entero positivo" }, { status: 400 })
+    }
+
+    // Verificar que la sucursal existe
+    const branch = await prisma.branch.findUnique({ where: { id: branchIdInt } })
+    if (!branch) {
+      return NextResponse.json({ error: "Sucursal no encontrada" }, { status: 404 })
+    }
+
+    // Validar que no haya solapamiento de horarios en la misma sucursal
     const utcDate = new Date(date + "T00:00:00.000Z");
     const classTime = new Date(`1970-01-01T${time}:00.000Z`)
 
@@ -123,11 +164,12 @@ export async function POST(request: NextRequest) {
       where: {
         date: utcDate,
         time: classTime,
+        branch_id: branchIdInt,
       },
     })
 
     if (existingClass) {
-      return NextResponse.json({ error: "Ya existe una clase programada en este horario" }, { status: 400 })
+      return NextResponse.json({ error: "Ya existe una clase programada en este horario para esta sucursal" }, { status: 400 })
     }
 
     // Verificar que el instructor existe
@@ -148,6 +190,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Tipo de clase no encontrado" }, { status: 404 })
     }
 
+    const defaultCapacity = isSpecial === true
+      ? SPECIAL_CLASS_BIKE_LAYOUT.bikeCount
+      : getBranchBikeCapacity(branchIdInt)
+    const parsedMaxCapacity = maxCapacity ? parseInt(maxCapacity, 10) : NaN
+    const resolvedCapacity = (!isNaN(parsedMaxCapacity) && parsedMaxCapacity > 0)
+      ? parsedMaxCapacity
+      : defaultCapacity
+
+    // Validar co-instructores si se proporcionan
+    const coInstructorIdsParsed: number[] = Array.isArray(coInstructorIds)
+      ? coInstructorIds.map((id: any) => Number.parseInt(id)).filter((id: number) => !isNaN(id) && id !== Number.parseInt(instructorId))
+      : []
+
+    if (coInstructorIdsParsed.length > 0) {
+      const coInstructorCount = await prisma.instructor.count({ where: { id: { in: coInstructorIdsParsed } } })
+      if (coInstructorCount !== coInstructorIdsParsed.length) {
+        return NextResponse.json({ error: "Uno o más co-instructores no encontrados" }, { status: 404 })
+      }
+    }
+
     // Crear la clase programada
     const scheduledClass = await prisma.scheduledClass.create({
       data: {
@@ -155,27 +217,34 @@ export async function POST(request: NextRequest) {
         instructorId: Number.parseInt(instructorId),
         date: utcDate,
         time: classTime,
-        maxCapacity: Number.parseInt(maxCapacity) || 10,
-        availableSpots: Number.parseInt(maxCapacity) || 10,
+        maxCapacity: resolvedCapacity,
+        availableSpots: resolvedCapacity,
         status: "scheduled",
+        branch_id: branchIdInt,
+        isSpecial: isSpecial === true,
+        specialPrice: isSpecial && specialPrice ? parseFloat(specialPrice) : null,
+        specialMessage: isSpecial && specialMessage ? specialMessage : null,
+        coInstructors: coInstructorIdsParsed.length > 0 ? {
+          create: coInstructorIdsParsed.map((id) => ({ instructorId: id })),
+        } : undefined,
       },
       include: {
         classType: true,
         instructor: {
           include: {
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
+            user: { select: { firstName: true, lastName: true } },
+          },
+        },
+        coInstructors: {
+          include: {
+            instructor: {
+              include: {
+                user: { select: { firstName: true, lastName: true } },
               },
             },
           },
         },
-        reservations: {
-          where: {
-            status: "confirmed",
-          },
-        },
+        reservations: { where: { status: "confirmed" } },
         waitlist: true,
       },
     })
